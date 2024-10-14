@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit | Product</title>
+    <link href="/css/tailwind.css" rel="stylesheet">
+
+    <!-- FilePond styles -->
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+</head>
+<body>
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-50 py-16">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <img class="mx-auto h-10 w-auto" src="/images/logo.svg" alt="Pixel Tech">
+        <h2 class="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Edit Product</h2>
+    </div>
+
+    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-2xl">
+        <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+            <form id="productForm" class="space-y-6" th:action="@{'/products/update/' + ${product.id}}" method="POST" enctype="multipart/form-data">
+                <!-- Hidden field for Product ID -->
+                <input type="hidden" id="productId" name="id" th:value="${product.id}">
+
+                <!-- Product Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium leading-6 text-gray-900">Name</label>
+                    <div class="mt-2">
+                        <input id="name" name="name" type="text" autocomplete="name" th:value="${product.name}" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <!-- Product Description -->
+                <div>
+                    <label for="description" class="block text-sm font-medium leading-6 text-gray-900">Description</label>
+                    <div class="mt-2">
+                        <textarea id="description" name="description" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6" th:text="${product.description}"></textarea>
+                    </div>
+                </div>
+
+                <!-- Existing Images -->
+                <div th:if="${product.images != null}">
+                    <label for="existing-images" class="block text-sm font-medium leading-6 text-gray-900">Existing Images</label>
+                    <div class="mt-2 grid grid-cols-2 gap-4">
+                        <div th:each="image : ${product.images}">
+                            <img th:src="@{'/images/products/' + ${image.path}}" th:alt="${image.altText}" class="w-full h-40 object-cover rounded-lg mb-2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Images -->
+                <div>
+                    <label for="images" class="block text-sm font-medium leading-6 text-gray-900">Product Images</label>
+                    <div class="mt-2">
+                        <input type="file" name="images" id="images" multiple class="filepond" data-max-file-size="10MB" data-max-files="5">
+                    </div>
+                </div>
+
+                <!-- Product Price -->
+                <div class="col-span-6">
+                    <label for="price" class="block text-sm font-medium leading-6 text-gray-900">Price</label>
+                    <div class="mt-2">
+                        <input id="price" name="price" type="number" th:value="${product.price}" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <!-- Product Stock -->
+                <div class="col-span-6">
+                    <label for="stock" class="block text-sm font-medium leading-6 text-gray-900">Stock</label>
+                    <div class="mt-2">
+                        <input id="stock" name="stock" type="number" th:value="${product.stock}" required class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="flex w-full justify-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
+        <p class="text-center text-sm text-gray-500">
+            <a href="/dashboard" class="font-semibold leading-6 text-red-600 hover:text-red-500">Back to dashboard</a>
+        </p>
+    </div>
+</div>
+
+<!-- FilePond JS -->
+<script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+
+<!-- FilePond Initialization -->
+<script>
+    // Register the plugins for FilePond
+    FilePond.registerPlugin(FilePondPluginImagePreview);
+
+    // Initialize FilePond
+    const ponds = document.querySelectorAll('.filepond');
+    ponds.forEach(pond => FilePond.create(pond, {
+        instantUpload: false, // Disable automatic upload
+    }));
+
+    // Intercept form submission and manually process files with form data
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Create a FormData object
+        const formData = new FormData(this);
+
+        // Get FilePond instance and add the files to FormData
+        const pond = FilePond.find(document.querySelector('.filepond'));
+        if (pond) {
+            pond.getFiles().forEach(fileItem => {
+                formData.append('images', fileItem.file);
+            });
+        }
+
+        // Check if we are updating or creating a product
+        const productId = document.getElementById('productId') ? document.getElementById('productId').value : null;
+
+        // Set the correct URL and method based on the presence of productId
+        let url = '';
+        let method = 'POST';  // Use POST for both create and update (change to PUT for update if necessary)
+
+
+        url = `/products/update/${productId}`;
+
+
+        // Send the form data with files using Fetch API
+        fetch(url, {
+            method: method,
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/dashboard';  // Redirect to dashboard on success
+                } else {
+                    console.error(response);
+                }
+            })
+            .catch(error => {
+                console.error('Form submission failed:', error);
+            });
+    });
+</script>
+</body>
+</html>
