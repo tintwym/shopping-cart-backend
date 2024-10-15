@@ -22,7 +22,7 @@
                      th:if="${iterStat.index == 0}"
                      th:src="@{'/images/products/' + ${image.path}}"
                      th:alt="${image.altText}"
-                     class="w-full h-40 object-cover rounded-lg mb-2">
+                     class="w-full h-full object-contain rounded-lg mb-2">
             </div>
 
             <h2 class="text-lg font-semibold mb-2" th:text="${product.name}"></h2>
