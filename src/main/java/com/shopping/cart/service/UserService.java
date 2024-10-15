@@ -17,6 +17,7 @@ import com.shopping.cart.utility.JwtUtility;
 import com.shopping.cart.utility.PasswordHashingUtility;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -81,6 +82,10 @@ public class UserService implements IUserService {
         // Map the RegisterUserRequest to a User entity
         User user = UserMapper.fromRegisterUserRequest(registerUserRequest);
 
+        // Fetch the role from the role service
+        Role role = roleRepository.findByName("User");
+        user.setRole(role);
+
         // Save the user to the database
         userRepository.save(user);
 
@@ -100,7 +105,7 @@ public class UserService implements IUserService {
         User user = UserMapper.fromRegisterAdminRequest(registerAdminRequest);
 
         // Fetch the role from the role service
-        Role role = roleRepository.findByName("Admin"); // Replace "Admin" with the appropriate role name if necessary
+        Role role = roleRepository.findByName("Admin");
         user.setRole(role);
 
         // Save the user to the database
@@ -114,13 +119,16 @@ public class UserService implements IUserService {
         // Find the user by username
         User user = userRepository.findByUsername(loginUserRequest.getUsername());
 
-        // Check if the user exists and the password is correct
-        if (user != null && PasswordHashingUtility.verifyPassword(loginUserRequest.getPassword(), user.getPassword())) {
-            // Generate JSON Web Token
-            String token = jwtUtility.generateToken(user.getUsername());
+        if (Objects.equals(user.getRole().getName(), "User"))
+        {
+            // Check if the user exists and the password is correct
+            if (PasswordHashingUtility.verifyPassword(loginUserRequest.getPassword(), user.getPassword())) {
+                // Generate JSON Web Token
+                String token = jwtUtility.generateToken(user.getUsername());
 
-            // Return the AuthResponse object with the token
-            return new AuthResponse(token);
+                // Return the AuthResponse object with the token
+                return new AuthResponse(token);
+            }
         }
 
         // Return null if the user does not exist or the password is incorrect
