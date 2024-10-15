@@ -15,6 +15,7 @@ public class Product extends BaseEntity {
     @Column(unique = true)
     private String name;
 
+    @Column(length = 1000)
     private String description;
     private BigDecimal price;
     private int stock;
