@@ -7,6 +7,8 @@ import com.shopping.cart.entity.ProductImage;
 import com.shopping.cart.interfaces.IProductService;
 import com.shopping.cart.mapper.ProductMapper;
 import com.shopping.cart.repository.ProductRepository;
+import com.stripe.exception.StripeException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,11 +25,13 @@ import java.util.UUID;
 @Service
 public class ProductService implements IProductService {
     private final ProductRepository productRepository;
+    private final StripeService stripeService;
     private final String uploadDir = "src/main/resources/static/images/products/";
 
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, StripeService stripeService) {
         this.productRepository = productRepository;
+        this.stripeService = stripeService;
     }
 
     @Override
@@ -74,6 +78,12 @@ public class ProductService implements IProductService {
         }
 
         product.setImages(productImages);
+        try {
+			product = stripeService.createStripeProduct(product);
+		} catch (StripeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         return productRepository.save(product);
     }
 
@@ -81,7 +91,10 @@ public class ProductService implements IProductService {
     public Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages) {
         // Find the product by ID
         Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-
+        
+        //Check for price change as we want to reduce number of stripe price created
+        
+        boolean isPriceSame = product.getPrice() == updateProductRequest.getPrice();
         // Update the product details from the request
         product.setName(updateProductRequest.getName());
         product.setDescription(updateProductRequest.getDescription());
@@ -116,7 +129,15 @@ public class ProductService implements IProductService {
             // Update product's image list
             product.setImages(productImages);
         }
-
+        
+        if (!isPriceSame) {
+        	try {
+				product = stripeService.updateStripeProduct(product);
+			} catch (StripeException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
         // Save updated product to the database and return the saved product
         return productRepository.save(product);
     }
