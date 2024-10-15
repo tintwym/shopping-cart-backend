@@ -20,6 +20,6 @@ public class CheckoutApiController {
 
     @PostMapping("/checkout")
     public void checkout(@RequestHeader("Authorization") String token) {
-        checkoutService.checkout(token);
+        checkoutService.initiateCheckout(token);
     }
 }

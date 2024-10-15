@@ -18,6 +18,7 @@ public class Product extends BaseEntity {
     private String description;
     private BigDecimal price;
     private int stock;
+    private String stripeId;
     private boolean isDeleted = false;
 
     // One-to-Many relationship with ProductImage

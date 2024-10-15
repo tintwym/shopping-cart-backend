@@ -1,5 +1,7 @@
 package com.shopping.cart.interfaces;
 
 public interface ICheckoutService {
-    void checkout(String token);
+    String initiateCheckout(String token);
+    void processCheckout(String paymentId);
+    void cancelCheckout(String paymentId);
 }
