@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/auth")
+@RequestMapping("/")
 public class AuthController {
     private final UserService userService;
     private final HttpSession session;
@@ -24,12 +24,12 @@ public class AuthController {
         this.session = session;
     }
 
-    @GetMapping("/login")
+    @GetMapping({"/", "/auth/login"})
     public String login() {
         return "auth/login";
     }
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public String loginAdmin(@ModelAttribute LoginAdminRequest loginAdminRequest) {
         boolean loginSuccess = userService.loginAdmin(loginAdminRequest);
 
@@ -47,12 +47,12 @@ public class AuthController {
         return "redirect:/auth/login";
     }
 
-    @GetMapping("/register")
+    @GetMapping("/auth/register")
     public String register() {
         return "auth/register";
     }
 
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public String registerAdmin(@ModelAttribute RegisterAdminRequest registerAdminRequest) {
         boolean registerSuccess = userService.registerAdmin(registerAdminRequest);
 

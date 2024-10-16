@@ -18,3 +18,8 @@ jwt.expiration=3600000
 # Static Resources for public access
 spring.web.resources.static-locations=classpath:/static/,classpath:/public/
 
+# Stripe API
+stripe.api.key=<sk_test_secret_key>
+
+# Session Timeout
+server.servlet.session.timeout=30m
