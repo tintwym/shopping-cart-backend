@@ -40,6 +40,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && jwtUtility.isTokenValid(jwt, username)) {
             // You can set user info in the request here if needed
             request.setAttribute("username", username);
+
+            // Check if token needs refreshing
+            if (jwtUtility.shouldRefreshToken(jwt)) {
+                // Generate a new token and add it to the response headers
+                String newToken = jwtUtility.generateToken(username);
+                response.setHeader("Authorization", "Bearer " + newToken);
+            }
         } else {
             // If token is invalid, return a 401 Unauthorized response
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

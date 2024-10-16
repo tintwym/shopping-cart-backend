@@ -5,8 +5,17 @@ import com.shopping.cart.interfaces.ICheckoutService;
 import com.shopping.cart.repository.CartRepository;
 import com.shopping.cart.repository.OrderItemRepository;
 import com.shopping.cart.repository.OrderRepository;
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CheckoutService implements ICheckoutService {
@@ -14,6 +23,14 @@ public class CheckoutService implements ICheckoutService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final UserService userService;
+
+    @Value("${stripe.api.key}")
+    private String stripeApiKey;
+
+    @PostConstruct
+    public void init() {
+        Stripe.apiKey = stripeApiKey;
+    }
 
     @Autowired
     public CheckoutService(CartRepository cartRepository, OrderRepository orderRepository, OrderItemRepository orderItemRepository, UserService userService) {
@@ -23,7 +40,8 @@ public class CheckoutService implements ICheckoutService {
         this.userService = userService;
     }
 
-    public void checkout(String token) {
+    @Override
+    public String checkout(String token) {
         // Get the user from the token
         User user = userService.getUserFromToken(token);
 
@@ -31,6 +49,55 @@ public class CheckoutService implements ICheckoutService {
         Cart cart = cartRepository.findByUser(user);
         if (cart == null || cart.getCartItems().isEmpty()) {
             throw new IllegalStateException("Cart is empty. Cannot proceed with checkout.");
+        }
+
+        // Create Stripe line items based on cart contents
+        List<SessionCreateParams.LineItem> stripeLineItems = new ArrayList<>();
+        for (CartItem cartItem : cart.getCartItems()) {
+            SessionCreateParams.LineItem stripeLineItem = SessionCreateParams.LineItem.builder()
+                    .setPriceData(
+                            SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency("sgd")
+                                    .setUnitAmount(cartItem.getPrice().longValue() * 100)
+                                    .setProductData(
+                                            SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                    .setName(cartItem.getProduct().getName())
+                                                    .build()
+                                    )
+                                    .build()
+                    )
+                    .setQuantity((long) cartItem.getQuantity())
+                    .build();
+            stripeLineItems.add(stripeLineItem);
+        }
+
+        try {
+            // Create the Stripe Checkout session
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .addAllLineItem(stripeLineItems)
+                    .setSuccessUrl("http://localhost:5173/payment/success")
+                    .setCancelUrl("http://localhost:5173/cart")
+                    .build();
+
+            Session session = Session.create(params);
+
+            // Return the session ID so the frontend can redirect to Stripe
+            return session.getId();
+        } catch (StripeException e) {
+            throw new RuntimeException("Failed to create Stripe session", e);
+        }
+    }
+
+    @Override
+    public void completeOrder(String token) {
+        // Get the user from the token
+        User user = userService.getUserFromToken(token);
+
+        // Fetch the user's cart
+        Cart cart = cartRepository.findByUser(user);
+        if (cart == null || cart.getCartItems().isEmpty()) {
+            throw new IllegalStateException("Cart is empty. Cannot proceed with order completion.");
         }
 
         // Create a new Order and set the user and total price
@@ -53,7 +120,7 @@ public class CheckoutService implements ICheckoutService {
             orderItemRepository.save(orderItem);
         }
 
-        // After processing, clear the cart
+        // Clear the cart
         cartRepository.delete(cart);
     }
 }

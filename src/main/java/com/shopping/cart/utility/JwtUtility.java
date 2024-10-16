@@ -18,6 +18,9 @@ public class JwtUtility {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    // Refresh window time (e.g., 15 minutes before expiration)
+    private static final long REFRESH_WINDOW = 900000; // 15 minutes in milliseconds
+
     // Generate JWT token
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
@@ -62,6 +65,13 @@ public class JwtUtility {
     // Check if token has expired
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    // Check if token needs refreshing
+    public boolean shouldRefreshToken(String token) {
+        Date expiration = extractExpiration(token);
+        long timeToExpiration = expiration.getTime() - System.currentTimeMillis();
+        return timeToExpiration <= REFRESH_WINDOW;  // Token is within the refresh window
     }
 
     // Validate token

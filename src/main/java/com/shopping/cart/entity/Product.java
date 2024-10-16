@@ -19,6 +19,14 @@ public class Product extends BaseEntity {
     private String description;
     private BigDecimal price;
     private int stock;
+
+    // Stripe product and price IDs
+    @Column(name = "stripe_product_id", unique = true)
+    private String stripeProductId;
+
+    @Column(name = "stripe_price_id", unique = true)
+    private String stripePriceId;
+
     private boolean isDeleted = false;
 
     // One-to-Many relationship with ProductImage
@@ -29,11 +37,13 @@ public class Product extends BaseEntity {
     public Product() {}
 
     // Parameterized constructor
-    public Product(String name, String description, BigDecimal price, int stock, boolean isDeleted, List<ProductImage> images) {
+    public Product(String name, String description, BigDecimal price, int stock, String stripeProductId, String stripePriceId, boolean isDeleted, List<ProductImage> images) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock;
+        this.stripeProductId = stripeProductId;
+        this.stripePriceId = stripePriceId;
         this.isDeleted = isDeleted;
         this.images = images;
     }
