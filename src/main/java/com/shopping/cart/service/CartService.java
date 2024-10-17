@@ -74,8 +74,9 @@ public class CartService implements ICartService {
             cart = cartRepository.save(cart); // Save the new cart before adding items
         }
 
-        // Retrieve the product by UUID. If product is not found, throw an exception.
-        Product product = productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        // Retrieve the product by UUID. If the product is not found, throw an exception.
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
         // Check if the product already exists in the cart
         Optional<CartItem> existingCartItem = cart.getCartItems().stream()
@@ -86,22 +87,26 @@ public class CartService implements ICartService {
             // If the product exists in the cart, update the quantity
             CartItem cartItem = existingCartItem.get();
             cartItem.setQuantity(cartItem.getQuantity() + quantity); // Update the quantity
+
+            // Update the item's total price based on new quantity
+            cartItem.setPrice(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
         } else {
             // Create a new cart item if the product doesn't already exist in the cart
             CartItem cartItem = new CartItem(cart, product, quantity, product.getPrice().multiply(BigDecimal.valueOf(quantity)));
             cart.getCartItems().add(cartItem);
         }
 
-        // Recalculate the total price of the cart based on the cart items' prices
+        // Recalculate the cart's total price by summing the total price of all items
         BigDecimal updatedTotalPrice = cart.getCartItems().stream()
-                .map(cartItem -> cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()))) // Calculate based on product price * quantity
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(CartItem::getPrice) // Get total price of each item
+                .reduce(BigDecimal.ZERO, BigDecimal::add); // Sum the total prices
 
         cart.setTotalPrice(updatedTotalPrice); // Set the new total price for the cart
 
         // Save the updated cart and its items
         cartRepository.save(cart);
     }
+
 
     @Override
     public void updateProductInCart(String token, UUID productId, int quantity) {

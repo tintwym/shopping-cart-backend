@@ -59,7 +59,7 @@ public class CheckoutService implements ICheckoutService {
                     .setPriceData(
                             SessionCreateParams.LineItem.PriceData.builder()
                                     .setCurrency("sgd")
-                                    .setUnitAmount(cartItem.getPrice().longValue() * 100)
+                                    .setUnitAmount(cartItem.getProduct().getPrice().longValue() * 100)
                                     .setProductData(
                                             SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                     .setName(cartItem.getProduct().getName())
