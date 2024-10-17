@@ -11,4 +11,7 @@ import java.util.UUID;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByUser(User user);
+
+    // Check if a pending order already exists for the user
+    boolean existsByUserAndStatus(User user, String status);
 }

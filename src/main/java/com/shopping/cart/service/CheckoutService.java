@@ -13,6 +13,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,16 +101,23 @@ public class CheckoutService implements ICheckoutService {
             throw new IllegalStateException("Cart is empty. Cannot proceed with order completion.");
         }
 
+        // Check if there is a pending order for this user
+        if (orderRepository.existsByUserAndStatus(user, "PENDING")) {
+            throw new IllegalStateException("There is already a pending order for this user.");
+        }
+
         // Create a new Order and set the user and total price
         Order order = new Order();
         order.setUser(user);
         order.setTotalPrice(cart.getTotalPrice());
+        order.setStatus("PENDING"); // Set the status to PENDING initially
 
         // Save the order
         order = orderRepository.save(order);
 
         // Move cart items to order items
-        for (CartItem cartItem : cart.getCartItems()) {
+        List<CartItem> cartItems = cart.getCartItems();
+        for (CartItem cartItem : cartItems) {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setProduct(cartItem.getProduct());
@@ -120,7 +128,11 @@ public class CheckoutService implements ICheckoutService {
             orderItemRepository.save(orderItem);
         }
 
-        // Clear the cart
+        // Clear the cart after order is completed
         cartRepository.delete(cart);
+
+        // Set order status to COMPLETED after everything is done
+        order.setStatus("COMPLETED");
+        orderRepository.save(order);
     }
 }

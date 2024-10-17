@@ -22,6 +22,8 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL) // One order can have multiple order items
     private List<OrderItem> orderItems = new ArrayList<>();
 
+    private String status;
+
     // Default constructor is required by JPA
     public Order() {}
 
