@@ -48,6 +48,7 @@
                 <label htmlFor="email" class="block text-sm font-medium leading-6 text-gray-900">Email <span class="text-red-500">*</span></label>
                 <div class="mt-2">
                     <input id="email" name="email" type="email" required autoComplete="email" class="block w-full rounded-md border-0 py-1.5 px-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6 focus:outline-none" />
+                    <p id="email-error" class="mt-2 text-sm text-red-600"></p>
                 </div>
             </div>
 
@@ -123,6 +124,48 @@
             eyeClosedIcon.classList.remove("hidden");
         }
     };
+
+    document.getElementById('registration-form').addEventListener('submit', function(event) {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const emailError = document.getElementById('email-error');
+        const passwordError = document.getElementById('password-error');
+        const confirmError = document.getElementById('confirm-error');
+        const errorMessage = document.getElementById('error-message');
+        let isValid = true;
+
+        // Clear previous error messages
+        emailError.innerHTML = '';
+        passwordError.innerHTML = '';
+        confirmError.innerHTML = '';
+        errorMessage.innerHTML = '';
+
+        // Email validation
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(email)) {
+            emailError.innerHTML = 'Please enter a valid email address.';
+            isValid = false;
+        }
+
+        // Password validation
+        if (password.length < 8) {
+            passwordError.innerHTML = 'Password must be at least 8 characters long.';
+            isValid = false;
+        }
+
+        // Confirm password validation
+        if (password !== confirmPassword) {
+            confirmError.innerHTML = 'Passwords do not match.';
+            isValid = false;
+        }
+
+        // Prevent form submission if validation fails
+        if (!isValid) {
+            event.preventDefault();
+            errorMessage.innerHTML = 'Please fix the errors above and try again.';
+        }
+    });
 </script>
 </body>
 </html>

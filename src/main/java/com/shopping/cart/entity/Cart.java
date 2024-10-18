@@ -1,3 +1,7 @@
+//Author name: Wei YiTao
+//Author student ID:
+//Description:
+//
 package com.shopping.cart.entity;
 
 import jakarta.persistence.*;

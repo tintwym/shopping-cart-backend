@@ -1,3 +1,6 @@
+//Author name: Wei YiTao
+//Author student ID:
+//Function:
 package com.shopping.cart.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
