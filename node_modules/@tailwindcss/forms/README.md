@@ -10,7 +10,15 @@ Install the plugin from npm:
 npm install -D @tailwindcss/forms
 ```
 
-Then add the plugin to your `tailwind.config.js` file:
+Then, when using Tailwind CSS v4, add the plugin to your main stylesheet:
+
+```css
+/* app.css */
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+```
+
+If you are still using **Tailwind CSS v3**, add the plugin to your `tailwind.config.js` file:
 
 ```js
 // tailwind.config.js
@@ -55,7 +63,7 @@ Every element has been normalized/reset to a simple visually consistent style th
 
 ```html
 <!-- You can actually customize padding on a select element now: -->
-<select class="px-4 py-3 rounded-full">
+<select class="rounded-full px-4 py-3">
   <!-- ... -->
 </select>
 
@@ -70,9 +78,9 @@ More customization examples and best practices coming soon.
 In addition to the global styles, we also generate a set of corresponding classes which can be used to explicitly apply the form styles to an element. This can be useful in situations where you need to make a non-form element, such as a `<div>`, look like a form element.
 
 ```html
-<input type="email" class="form-input px-4 py-3 rounded-full">
+<input type="email" class="form-input rounded-full px-4 py-3" />
 
-<select class="form-select px-4 py-3 rounded-full">
+<select class="form-select rounded-full px-4 py-3">
   <!-- ... -->
 </select>
 
@@ -106,6 +114,18 @@ Here is a complete table of the provided `form-*` classes for reference:
 Although we recommend thinking of this plugin as a "form reset" rather than a collection of form component styles, in some cases our default approach may be too heavy-handed, especially when integrating this plugin into existing projects.
 
 If generating both the global (base) styles and classes doesn't work well with your project, you can use the `strategy` option to limit the plugin to just one of these approaches.
+
+When using Tailwind CSS v4, configure the plugin in your main stylesheet:
+
+```css
+/* app.css */
+@plugin "@tailwindcss/forms" {
+  strategy: "base"; /* only generate global styles; or */
+  strategy: "class"; /* only generate classes */
+}
+```
+
+If you are still using **Tailwind CSS v3**, configure the plugin in your `tailwind.config.js` file:
 
 ```js
 // tailwind.config.js

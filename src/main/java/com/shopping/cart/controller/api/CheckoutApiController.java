@@ -28,13 +28,14 @@ public class CheckoutApiController {
         }
     }
 
-    @PostMapping("/complete-order")
-    public ResponseEntity<?> completeOrder(@RequestHeader("Authorization") String token) {
+    @PostMapping("/checkout/confirm")
+    public ResponseEntity<?> confirmCheckout(@RequestHeader("Authorization") String token,
+                                             @RequestParam("sessionId") String sessionId) {
         try {
-            checkoutService.completeOrder(token);
+            checkoutService.confirmCheckoutSession(token, sessionId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error completing order: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error confirming checkout: " + e.getMessage());
         }
     }
 }

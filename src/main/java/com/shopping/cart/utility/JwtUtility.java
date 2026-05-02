@@ -2,10 +2,12 @@ package com.shopping.cart.utility;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +23,11 @@ public class JwtUtility {
     // Refresh window time (e.g., 15 minutes before expiration)
     private static final long REFRESH_WINDOW = 900000; // 15 minutes in milliseconds
 
+    private SecretKey signingKey() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        return new SecretKeySpec(keyBytes, "HmacSHA256");
+    }
+
     // Generate JWT token
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
@@ -29,12 +36,13 @@ public class JwtUtility {
 
     // Generate token based on claims
     private String doGenerateToken(Map<String, Object> claims, String subject) {
+        Date issuedAt = new Date();
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(issuedAt)
+                .expiration(new Date(issuedAt.getTime() + expiration))
+                .signWith(signingKey())
                 .compact();
     }
 
@@ -57,9 +65,10 @@ public class JwtUtility {
     // Extract all claims
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(signingKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     // Check if token has expired

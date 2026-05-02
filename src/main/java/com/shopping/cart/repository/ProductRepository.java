@@ -5,10 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID> {
     // Custom query to fetch only products where isDeleted is false
     List<Product> findByIsDeletedFalse();
+
+    Optional<Product> findByStripePriceId(String stripePriceId);
+
+    Optional<Product> findByStripeProductId(String stripeProductId);
 }

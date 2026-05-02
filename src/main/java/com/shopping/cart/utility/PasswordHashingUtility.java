@@ -1,15 +1,17 @@
 package com.shopping.cart.utility;
 
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class PasswordHashingUtility {
+    private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+
     // Hash a password using BCrypt
     public static String hashPassword(String plainTextPassword) {
-        return BCrypt.hashpw(plainTextPassword, BCrypt.gensalt(12));
+        return encoder.encode(plainTextPassword);
     }
 
     // Check that an unhashed password matches one that has been hashed
     public static boolean verifyPassword(String plainTextPassword, String hashedPassword) {
-        return BCrypt.checkpw(plainTextPassword, hashedPassword);
+        return encoder.matches(plainTextPassword, hashedPassword);
     }
 }

@@ -24,6 +24,10 @@ public class Order extends BaseEntity {
 
     private String status;
 
+    /** Stripe Checkout Session id — unique when set, used for idempotent fulfillment. */
+    @Column(name = "stripe_checkout_session_id", unique = true)
+    private String stripeCheckoutSessionId;
+
     // Default constructor is required by JPA
     public Order() {}
 

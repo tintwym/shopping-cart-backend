@@ -78,6 +78,16 @@ public class CartService implements ICartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        if (product.isDeleted()) {
+            throw new IllegalStateException("Product is no longer available");
+        }
+        if (quantity <= 0) {
+            throw new IllegalStateException("Quantity must be greater than 0");
+        }
+        if (product.getStock() < quantity) {
+            throw new IllegalStateException("Insufficient stock");
+        }
+
         // Check if the product already exists in the cart
         Optional<CartItem> existingCartItem = cart.getCartItems().stream()
                 .filter(item -> item.getProduct().getId().equals(productId))
@@ -86,7 +96,11 @@ public class CartService implements ICartService {
         if (existingCartItem.isPresent()) {
             // If the product exists in the cart, update the quantity
             CartItem cartItem = existingCartItem.get();
-            cartItem.setQuantity(cartItem.getQuantity() + quantity); // Update the quantity
+            int newQty = cartItem.getQuantity() + quantity;
+            if (product.getStock() < newQty) {
+                throw new IllegalStateException("Insufficient stock");
+            }
+            cartItem.setQuantity(newQty); // Update the quantity
 
             // Update the item's total price based on new quantity
             cartItem.setPrice(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
@@ -125,6 +139,9 @@ public class CartService implements ICartService {
         if (product == null) {
             return;
         }
+        if (product.isDeleted()) {
+            throw new IllegalStateException("Product is no longer available");
+        }
 
         // Find the cart item in the cart
         CartItem cartItem = cart.getCartItems().stream()
@@ -136,17 +153,25 @@ public class CartService implements ICartService {
             return;
         }
 
-        // Update logic based on the provided quantity
+        int newQuantity;
         if (quantity == 1) {
-            // If the quantity is 1, increase the quantity by 1
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
+            // Legacy behavior: treat 1 as "+1"
+            newQuantity = cartItem.getQuantity() + 1;
         } else if (quantity > 1) {
-            // If the quantity is greater than 1, set the new quantity
-            cartItem.setQuantity(quantity);
+            // Treat >1 as "set exact quantity"
+            newQuantity = quantity;
+        } else {
+            throw new IllegalStateException("Quantity must be greater than 0");
         }
 
+        if (product.getStock() < newQuantity) {
+            throw new IllegalStateException("Insufficient stock");
+        }
+
+        cartItem.setQuantity(newQuantity);
+
         // Update the price of the cart item
-        cartItem.setPrice(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
+        cartItem.setPrice(product.getPrice().multiply(BigDecimal.valueOf(newQuantity)));
 
         // Update the total price of the cart
         cart.setTotalPrice(cart.getCartItems().stream()

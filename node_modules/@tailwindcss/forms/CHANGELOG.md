@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing yet!
 
+## [0.5.11] - 2025-12-17
+
+### Fixed
+
+- Limit attribute rules to input and select elements ([#159](https://github.com/tailwindlabs/tailwindcss-forms/pull/159))
+
+## [0.5.10] - 2025-01-07
+
+### Fixed
+
+- Support installing with beta versions of Tailwind CSS v4 ([#163](https://github.com/tailwindlabs/tailwindcss-forms/pull/163))
+
 ## [0.5.9] - 2024-09-05
 
 ### Fixed
@@ -160,7 +172,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release!
 
-[unreleased]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.9...HEAD
+[unreleased]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.11...HEAD
+[0.5.11]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.10...v0.5.11
+[0.5.10]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.9...v0.5.10
 [0.5.9]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.8...v0.5.9
 [0.5.8]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.7...v0.5.8
 [0.5.7]: https://github.com/tailwindlabs/tailwindcss-forms/compare/v0.5.6...v0.5.7

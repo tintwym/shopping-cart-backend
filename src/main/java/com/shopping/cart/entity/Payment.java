@@ -1,6 +1,7 @@
 package com.shopping.cart.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -22,6 +23,10 @@ public class Payment extends BaseEntity {
     private User user;
     @OneToOne
     private Order order;
+
+    @Column(name = "stripe_payment_intent_id")
+    private String stripePaymentIntentId;
+
     // Default constructor is required by JPA
     public Payment() {}
 

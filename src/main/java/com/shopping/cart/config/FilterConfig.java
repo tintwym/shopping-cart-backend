@@ -20,7 +20,7 @@ public class FilterConfig {
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter() {
         FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(jwtAuthenticationFilter);
-        registrationBean.addUrlPatterns("/api/orders/*");  // Apply the filter to all /api/products/* routes
+        registrationBean.addUrlPatterns("/api/orders/*", "/api/checkout/*", "/api/checkout");  // Apply the filter to protected API routes
         return registrationBean;
     }
 
