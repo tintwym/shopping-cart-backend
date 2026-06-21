@@ -1,5 +1,6 @@
 package com.shopping.cart.service;
 
+import com.shopping.cart.dto.response.CheckoutSessionResponse;
 import com.shopping.cart.entity.Cart;
 import com.shopping.cart.entity.CartItem;
 import com.shopping.cart.entity.Product;
@@ -29,8 +30,14 @@ public class CheckoutService implements ICheckoutService {
     @Value("${stripe.api.key}")
     private String stripeApiKey;
 
-    @Value("${app.frontend.base-url:http://localhost:5173}")
+    @Value("${app.frontend.base-url:http://localhost:8081}")
     private String frontendBaseUrl;
+
+    @Value("${app.checkout.success-url:}")
+    private String checkoutSuccessUrl;
+
+    @Value("${app.checkout.cancel-url:}")
+    private String checkoutCancelUrl;
 
     @PostConstruct
     public void init() {
@@ -50,7 +57,7 @@ public class CheckoutService implements ICheckoutService {
     }
 
     @Override
-    public String checkout(String token) {
+    public CheckoutSessionResponse checkout(String token) {
         User user = userService.getUserFromToken(token);
 
         Cart cart = cartRepository.findByUser(user);
@@ -96,7 +103,20 @@ public class CheckoutService implements ICheckoutService {
             stripeLineItems.add(stripeLineItem);
         }
 
-        String base = frontendBaseUrl.endsWith("/") ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1) : frontendBaseUrl;
+        String successUrl;
+        String cancelUrl;
+        if (checkoutSuccessUrl != null && !checkoutSuccessUrl.isBlank()) {
+            successUrl = checkoutSuccessUrl;
+            cancelUrl = checkoutCancelUrl != null && !checkoutCancelUrl.isBlank()
+                    ? checkoutCancelUrl
+                    : "shoppingcart://cart";
+        } else {
+            String base = frontendBaseUrl.endsWith("/")
+                    ? frontendBaseUrl.substring(0, frontendBaseUrl.length() - 1)
+                    : frontendBaseUrl;
+            successUrl = base + "/payment/success?session_id={CHECKOUT_SESSION_ID}";
+            cancelUrl = base + "/cart";
+        }
 
         try {
             SessionCreateParams params = SessionCreateParams.builder()
@@ -104,12 +124,12 @@ public class CheckoutService implements ICheckoutService {
                     .addAllLineItem(stripeLineItems)
                     .setClientReferenceId(user.getId().toString())
                     .putMetadata("user_id", user.getId().toString())
-                    .setSuccessUrl(base + "/payment/success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl(base + "/cart")
+                    .setSuccessUrl(successUrl)
+                    .setCancelUrl(cancelUrl)
                     .build();
 
             Session session = Session.create(params);
-            return session.getId();
+            return new CheckoutSessionResponse(session.getId(), session.getUrl());
         } catch (StripeException e) {
             throw new RuntimeException("Failed to create Stripe session", e);
         }

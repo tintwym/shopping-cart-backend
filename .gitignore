@@ -35,8 +35,11 @@ build/
 ### macOS ###
 .DS_Store
 
-### application.properties ###
-src/main/resources/application.properties
+### Local overrides (optional secrets) ###
+src/main/resources/application-local.properties
 
 ### Images ###
 src/main/resources/static/images/products
+
+### Node (removed — was Tailwind for admin UI) ###
+node_modules/

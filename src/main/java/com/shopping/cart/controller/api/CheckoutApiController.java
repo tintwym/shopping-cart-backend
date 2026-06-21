@@ -20,9 +20,11 @@ public class CheckoutApiController {
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestHeader("Authorization") String token) {
         try {
-            String sessionId = checkoutService.checkout(token);
-            // Return the sessionId as part of a JSON object
-            return ResponseEntity.ok().body(Map.of("sessionId", sessionId)); // Send the sessionId back to the client
+            var session = checkoutService.checkout(token);
+            return ResponseEntity.ok().body(Map.of(
+                    "sessionId", session.getSessionId(),
+                    "checkoutUrl", session.getCheckoutUrl()
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error creating checkout session: " + e.getMessage());
         }

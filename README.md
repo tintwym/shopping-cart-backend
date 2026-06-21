@@ -1,12 +1,12 @@
 # Shopping cart backend
 
-Spring Boot API and server-side views for the shopping cart app. It exposes REST endpoints (consumed by the React frontend), Thymeleaf templates for some flows, JWT auth, MySQL persistence, and Stripe checkout.
+Spring Boot **REST API** and **PostgreSQL** (Neon) for the shopping cart app. JWT auth, Stripe checkout, and product image static files. No server-side HTML UI.
 
 ## Requirements
 
 - Java 17
 - Maven 3.9+
-- MySQL 8 (local instance with a database you create)
+- PostgreSQL (Neon for production, or local Postgres via Docker Compose)
 
 ## Configuration
 
@@ -16,41 +16,45 @@ Copy the example properties file and fill in real values:
 cp src/main/resources/application.properties.example src/main/resources/application.properties
 ```
 
-Edit `src/main/resources/application.properties`:
+Key settings:
 
-- **Database** — JDBC URL, username, and password for your MySQL database.
-- **JWT** — `jwt.secret` (use a long random string in production) and optional `jwt.expiration` (milliseconds).
-- **Stripe** — `stripe.api.key` and `stripe.webhook.secret` from the Stripe dashboard.
-- **Frontend** — `app.frontend.base-url` should match where the React app runs (default in the example is `http://localhost:5173`).
+- **Database** — `SPRING_DATASOURCE_*` or `DATABASE_URL` (Neon connection string on Render)
+- **JWT** — `JWT_SECRET`
+- **Stripe** — `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`
+- **Flutter client** — `APP_FRONTEND_BASE_URL` (default `http://localhost:8081`)
 
-See `application.properties.example` for all keys and comments.
+See `application.properties.example` and `.env.example` for all keys.
 
-## Run
-
-From this directory:
+## Run locally
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-If you do not use the Maven wrapper:
+API base: **http://localhost:8080/api**
+
+## Docker (pre-deploy smoke test)
 
 ```bash
-mvn spring-boot:run
+docker compose up --build
 ```
 
-The API is served under the default Spring Boot port **8080** unless you set `server.port`. REST paths used by the frontend are under `/api` (see the frontend `.env.example` for the full base URL).
+Starts Postgres 16 + API on port 8080.
+
+## Render deploy
+
+Use `render.yaml` with `DATABASE_URL` pointing at Neon.
 
 ## Tests
-
-Tests use an in-memory H2 database (`src/test/resources/application.properties`). Run:
 
 ```bash
 ./mvnw test
 ```
 
+Tests use in-memory H2 in PostgreSQL compatibility mode.
+
 ## Tech stack
 
-- Spring Boot 3.5 (Web, Data JPA, Data REST, Thymeleaf)
-- MySQL (runtime), H2 (tests)
-- JWT (jjwt), Stripe Java SDK, Spring Session, Lombok
+- Spring Boot 3.5 (Web, Data JPA, Actuator)
+- PostgreSQL / Neon (runtime), H2 (tests)
+- JWT (jjwt), Stripe Java SDK, Lombok

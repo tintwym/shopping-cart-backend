@@ -1,0 +1,10 @@
+target/
+node_modules/
+.git/
+.idea/
+*.iml
+.env
+.env.*
+!/.env.example
+src/main/resources/application-local.properties
+src/main/resources/static/images/products/
