@@ -10,10 +10,10 @@ import com.shopping.cart.repository.OrderItemRepository;
 import com.shopping.cart.repository.ProductRepository;
 import com.shopping.cart.repository.ReviewRepository;
 import com.shopping.cart.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -24,7 +24,6 @@ public class ReviewService implements IReviewService {
     private final OrderItemRepository orderItemRepository;
     private final UserService userService;
 
-    @Autowired
     public ReviewService(ReviewRepository reviewRepository, ProductRepository productRepository, UserRepository userRepository, OrderItemRepository orderItemRepository, UserService userService) {
         this.reviewRepository = reviewRepository;
         this.productRepository = productRepository;
@@ -35,7 +34,7 @@ public class ReviewService implements IReviewService {
 
     @Override
     public Review getReview(UUID id) {
-        return reviewRepository.findById(id).orElse(null);
+        return reviewRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     @Override
@@ -54,11 +53,11 @@ public class ReviewService implements IReviewService {
         User authUser = userService.getUserFromToken(token);
 
         // Find the product, user, and order item by their IDs
-        Product product = productRepository.findById(addReviewRequest.getProductId())
+        Product product = productRepository.findById(Objects.requireNonNull(addReviewRequest.getProductId()))
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-        User user = userRepository.findById(authUser.getId())
+        User user = userRepository.findById(Objects.requireNonNull(authUser.getId()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        OrderItem orderItem = orderItemRepository.findById(addReviewRequest.getOrderItemId())
+        OrderItem orderItem = orderItemRepository.findById(Objects.requireNonNull(addReviewRequest.getOrderItemId()))
                 .orElseThrow(() -> new RuntimeException("Order item not found"));
 
         // Create and save the new review

@@ -5,15 +5,12 @@ import com.shopping.cart.entity.CartItem;
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.entity.User;
 import com.shopping.cart.interfaces.ICartService;
-import com.shopping.cart.repository.CartItemRepository;
 import com.shopping.cart.repository.CartRepository;
 import com.shopping.cart.repository.ProductRepository;
-import com.shopping.cart.repository.UserRepository;
-import com.shopping.cart.utility.JwtUtility;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,18 +18,11 @@ import java.util.UUID;
 public class CartService implements ICartService {
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
-    private final CartItemRepository cartItemRepository;
-    private final UserRepository userRepository;
-    private final JwtUtility jwtUtility;
     private final UserService userService;
 
-    @Autowired
-    public CartService(ProductRepository productRepository, CartRepository cartRepository, CartItemRepository cartItemRepository, UserRepository userRepository, JwtUtility jwtUtility, UserService userService) {
+    public CartService(ProductRepository productRepository, CartRepository cartRepository, UserService userService) {
         this.productRepository = productRepository;
         this.cartRepository = cartRepository;
-        this.cartItemRepository = cartItemRepository;
-        this.userRepository = userRepository;
-        this.jwtUtility = jwtUtility;
         this.userService = userService;
     }
 
@@ -75,7 +65,7 @@ public class CartService implements ICartService {
         }
 
         // Retrieve the product by UUID. If the product is not found, throw an exception.
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findById(Objects.requireNonNull(productId))
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         if (product.isDeleted()) {
@@ -134,7 +124,7 @@ public class CartService implements ICartService {
         }
 
         // Retrieve the product by UUID. If product is not found, return.
-        Product product = productRepository.findById(productId).orElse(null);
+        Product product = productRepository.findById(Objects.requireNonNull(productId)).orElse(null);
 
         if (product == null) {
             return;
@@ -194,7 +184,7 @@ public class CartService implements ICartService {
         }
 
         // Retrieve the product by UUID. If product is not found, return.
-        Product product = productRepository.findById(productId).orElse(null);
+        Product product = productRepository.findById(Objects.requireNonNull(productId)).orElse(null);
 
         if (product == null) {
             return;
@@ -218,15 +208,5 @@ public class CartService implements ICartService {
 
         // Save the cart
         cartRepository.save(cart);
-    }
-
-    private boolean existProductInCart(UUID productId, User user) {
-        Cart cart = cartRepository.findByUser(user);
-        if (cart == null) {
-            return false;
-        }
-
-        return cart.getCartItems().stream()
-                .anyMatch(item -> item.getProduct().getId().equals(productId));
     }
 }

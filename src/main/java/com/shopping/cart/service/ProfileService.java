@@ -6,17 +6,15 @@ import com.shopping.cart.entity.User;
 import com.shopping.cart.interfaces.IProfileService;
 import com.shopping.cart.mapper.ProfileMapper;
 import com.shopping.cart.repository.ProfileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.util.Objects;
 
 @Service
 public class ProfileService implements IProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
 
-    @Autowired
     public ProfileService(ProfileRepository profileRepository, UserService userService) {
         this.profileRepository = profileRepository;
         this.userService = userService;
@@ -48,6 +46,6 @@ public class ProfileService implements IProfileService {
         Profile updatedProfile = ProfileMapper.fromUpdateProfileRequest(profile, updateProfileRequest);
 
         // Save the updated profile to the database
-        profileRepository.save(updatedProfile);
+        profileRepository.save(Objects.requireNonNull(updatedProfile));
     }
 }

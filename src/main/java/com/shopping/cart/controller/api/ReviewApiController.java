@@ -3,7 +3,6 @@ package com.shopping.cart.controller.api;
 import com.shopping.cart.dto.request.AddReviewRequest;
 import com.shopping.cart.entity.Review;
 import com.shopping.cart.service.ReviewService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +14,6 @@ import java.util.UUID;
 public class ReviewApiController {
     private final ReviewService reviewService;
 
-    @Autowired
     public ReviewApiController(ReviewService reviewService) {
         this.reviewService = reviewService;
     }

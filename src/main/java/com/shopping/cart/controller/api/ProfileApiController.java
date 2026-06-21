@@ -3,7 +3,6 @@ package com.shopping.cart.controller.api;
 import com.shopping.cart.dto.request.UpdateProfileRequest;
 import com.shopping.cart.entity.Profile;
 import com.shopping.cart.service.ProfileService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileApiController {
     private final ProfileService profileService;
 
-    @Autowired
     public ProfileApiController(ProfileService profileService) {
         this.profileService = profileService;
     }

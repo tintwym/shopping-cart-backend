@@ -1,43 +1,42 @@
 package com.shopping.cart.controller.api;
 
+import com.shopping.cart.dto.response.CheckoutSessionResponse;
 import com.shopping.cart.service.CheckoutService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class CheckoutApiController {
+
     private final CheckoutService checkoutService;
 
-    @Autowired
     public CheckoutApiController(CheckoutService checkoutService) {
         this.checkoutService = checkoutService;
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(@RequestHeader("Authorization") String token) {
-        try {
-            var session = checkoutService.checkout(token);
-            return ResponseEntity.ok().body(Map.of(
-                    "sessionId", session.getSessionId(),
-                    "checkoutUrl", session.getCheckoutUrl()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error creating checkout session: " + e.getMessage());
-        }
+    public Map<String, String> checkout(@RequestHeader("Authorization") String token) {
+        CheckoutSessionResponse session = checkoutService.checkout(token);
+        Map<String, String> body = new HashMap<>();
+        body.put("sessionId", session.getSessionId());
+        body.put("checkoutUrl", session.getCheckoutUrl());
+        return body;
     }
 
     @PostMapping("/checkout/confirm")
-    public ResponseEntity<?> confirmCheckout(@RequestHeader("Authorization") String token,
-                                             @RequestParam("sessionId") String sessionId) {
-        try {
-            checkoutService.confirmCheckoutSession(token, sessionId);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error confirming checkout: " + e.getMessage());
-        }
+    public Map<String, String> confirmCheckout(
+            @RequestHeader("Authorization") String token,
+            @RequestParam("sessionId") String sessionId) {
+        checkoutService.confirmCheckoutSession(token, sessionId);
+        Map<String, String> body = new HashMap<>();
+        body.put("status", "ok");
+        return body;
     }
 }

@@ -2,7 +2,6 @@ package com.shopping.cart.controller.api;
 
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.UUID;
 public class ProductApiController {
     private final ProductService productService;
 
-    @Autowired
     public ProductApiController(ProductService productService) {
         this.productService = productService;
     }

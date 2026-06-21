@@ -13,15 +13,17 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class CheckoutService implements ICheckoutService {
+
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final UserService userService;
@@ -39,12 +41,6 @@ public class CheckoutService implements ICheckoutService {
     @Value("${app.checkout.cancel-url:}")
     private String checkoutCancelUrl;
 
-    @PostConstruct
-    public void init() {
-        Stripe.apiKey = stripeApiKey;
-    }
-
-    @Autowired
     public CheckoutService(
             CartRepository cartRepository,
             ProductRepository productRepository,
@@ -54,6 +50,11 @@ public class CheckoutService implements ICheckoutService {
         this.productRepository = productRepository;
         this.userService = userService;
         this.checkoutFulfillmentService = checkoutFulfillmentService;
+    }
+
+    @PostConstruct
+    void init() {
+        Stripe.apiKey = stripeApiKey;
     }
 
     @Override
@@ -67,8 +68,10 @@ public class CheckoutService implements ICheckoutService {
 
         List<SessionCreateParams.LineItem> stripeLineItems = new ArrayList<>();
         for (CartItem cartItem : cart.getCartItems()) {
-            Product product = productRepository.findById(cartItem.getProduct().getId())
-                    .orElseThrow(() -> new IllegalStateException("Product not found: " + cartItem.getProduct().getId()));
+            UUID productId = Objects.requireNonNull(cartItem.getProduct().getId());
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new IllegalStateException("Product not found: " + productId));
+
             if (product.isDeleted()) {
                 throw new IllegalStateException("Removed product still in cart: " + product.getName());
             }
@@ -135,23 +138,15 @@ public class CheckoutService implements ICheckoutService {
         }
     }
 
-    /**
-     * Called from the browser after Stripe redirects back. Verifies the session belongs to the
-     * signed-in user, then fulfills idempotently (same logic as the Stripe webhook).
-     */
     @Override
     public void confirmCheckoutSession(String token, String sessionId) {
         if (sessionId == null || sessionId.isBlank()) {
             throw new IllegalStateException("sessionId is required");
         }
+
         User user = userService.getUserFromToken(token);
         try {
-            com.stripe.model.checkout.Session session = checkoutFulfillmentService.retrievePaidSession(sessionId);
-            String metaUser = session.getMetadata() != null ? session.getMetadata().get("user_id") : null;
-            if (metaUser == null || !user.getId().toString().equals(metaUser)) {
-                throw new IllegalStateException("This checkout session does not belong to the current user");
-            }
-            checkoutFulfillmentService.fulfillAfterRetrieve(sessionId, session);
+            checkoutFulfillmentService.confirmSessionForUser(sessionId, user);
         } catch (StripeException e) {
             throw new RuntimeException("Unable to confirm checkout with Stripe", e);
         }

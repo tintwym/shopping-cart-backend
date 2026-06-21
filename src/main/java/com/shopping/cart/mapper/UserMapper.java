@@ -1,6 +1,5 @@
 package com.shopping.cart.mapper;
 
-import com.shopping.cart.dto.request.LoginUserRequest;
 import com.shopping.cart.dto.request.RegisterAdminRequest;
 import com.shopping.cart.dto.request.RegisterUserRequest;
 import com.shopping.cart.entity.User;
@@ -23,13 +22,6 @@ public class UserMapper {
         user.setUsername(registerAdminRequest.getUsername());
         user.setEmail(registerAdminRequest.getEmail());
         user.setPassword(registerAdminRequest.getPassword());
-        return user;
-    }
-
-    public static User fromLoginUserRequest(LoginUserRequest loginUserRequest) {
-        User user = new User();
-        user.setUsername(loginUserRequest.getUsername());
-        user.setPassword(loginUserRequest.getPassword());
         return user;
     }
 }

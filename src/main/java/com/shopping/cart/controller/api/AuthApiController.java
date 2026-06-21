@@ -4,7 +4,6 @@ import com.shopping.cart.dto.request.LoginUserRequest;
 import com.shopping.cart.dto.request.RegisterUserRequest;
 import com.shopping.cart.dto.response.AuthResponse;
 import com.shopping.cart.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthApiController {
     private final UserService userService;
 
-    @Autowired
     public AuthApiController(UserService userService) {
         this.userService = userService;
     }

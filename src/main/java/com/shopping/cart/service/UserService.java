@@ -66,7 +66,7 @@ public class UserService implements IUserService {
 
     @Override
     public User getUserById(UUID id) {
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     @Override
@@ -119,19 +119,18 @@ public class UserService implements IUserService {
         // Find the user by username
         User user = userRepository.findByUsername(loginUserRequest.getUsername());
 
-        if (Objects.equals(user.getRole().getName(), "User"))
-        {
-            // Check if the user exists and the password is correct
-            if (PasswordHashingUtility.verifyPassword(loginUserRequest.getPassword(), user.getPassword())) {
+        if (user == null || user.getRole() == null || !Objects.equals(user.getRole().getName(), "User")) {
+            return null;
+        }
+
+        if (PasswordHashingUtility.verifyPassword(loginUserRequest.getPassword(), user.getPassword())) {
                 // Generate JSON Web Token
                 String token = jwtUtility.generateToken(user.getUsername());
 
                 // Return the AuthResponse object with the token
                 return new AuthResponse(token);
-            }
         }
 
-        // Return null if the user does not exist or the password is incorrect
         return null;
     }
 

@@ -4,7 +4,6 @@ import com.shopping.cart.entity.Order;
 import com.shopping.cart.entity.User;
 import com.shopping.cart.interfaces.IOrderService;
 import com.shopping.cart.repository.OrderRepository;
-import com.shopping.cart.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -10,7 +10,6 @@ import com.stripe.Stripe;
 import com.stripe.model.Price;
 import com.stripe.param.PriceCreateParams;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +21,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -32,7 +32,6 @@ public class ProductService implements IProductService {
     @Value("${stripe.api.key}")
     private String stripeApiKey;
 
-    @Autowired
     public ProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
@@ -52,7 +51,7 @@ public class ProductService implements IProductService {
     @Override
     public Product getProductById(UUID id) {
         // Find product by ID and return it if found, otherwise return null
-        return productRepository.findById(id).orElse(null);
+        return productRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     @Override
@@ -132,7 +131,7 @@ public class ProductService implements IProductService {
     @Override
     public Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages) {
         // Find the product by ID
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+        Product product = productRepository.findById(Objects.requireNonNull(id)).orElseThrow(() -> new RuntimeException("Product not found"));
 
         // Update the product details from the request
         product.setName(updateProductRequest.getName());
@@ -174,7 +173,7 @@ public class ProductService implements IProductService {
     @Override
     public void delete(UUID id) {
         // Find product by ID
-        productRepository.findById(id).ifPresent(product -> {
+        productRepository.findById(Objects.requireNonNull(id)).ifPresent(product -> {
             // set isDeleted to true
             product.setDeleted(true);
 
