@@ -1,7 +1,5 @@
 package com.shopping.cart.controller.api;
 
-import com.shopping.cart.dto.request.AddProductRequest;
-import com.shopping.cart.dto.request.UpdateProductRequest;
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;

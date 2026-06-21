@@ -11,16 +11,18 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class FilterConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CorsOrigins corsOrigins;
 
-    public FilterConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public FilterConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CorsOrigins corsOrigins) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.corsOrigins = corsOrigins;
     }
 
     @Bean
     public FilterRegistrationBean<JwtAuthenticationFilter> jwtFilter() {
         FilterRegistrationBean<JwtAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(jwtAuthenticationFilter);
-        registrationBean.addUrlPatterns("/api/orders/*", "/api/checkout/*", "/api/checkout");  // Apply the filter to protected API routes
+        registrationBean.addUrlPatterns("/api/orders/*", "/api/checkout/*", "/api/checkout");
         return registrationBean;
     }
 
@@ -28,8 +30,9 @@ public class FilterConfig {
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:8081");
-        config.addAllowedOrigin("http://localhost:8082");
+        for (String origin : corsOrigins.asArray()) {
+            config.addAllowedOrigin(origin);
+        }
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
@@ -37,7 +40,7 @@ public class FilterConfig {
         source.registerCorsConfiguration("/**", config);
 
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-        bean.setOrder(0);  // Ensure CORS is processed first
+        bean.setOrder(0);
         return bean;
     }
 }

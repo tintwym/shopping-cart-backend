@@ -7,4 +7,3 @@ node_modules/
 .env.*
 !/.env.example
 src/main/resources/application-local.properties
-src/main/resources/static/images/products/
