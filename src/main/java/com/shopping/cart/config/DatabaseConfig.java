@@ -3,7 +3,7 @@ package com.shopping.cart.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
  * When unset, Spring Boot uses {@code spring.datasource.*} from properties.
  */
 @Configuration
-@ConditionalOnProperty(name = "DATABASE_URL")
+@ConditionalOnExpression("T(org.springframework.util.StringUtils).hasText('${DATABASE_URL:}')")
 public class DatabaseConfig {
 
     @Bean

@@ -1,42 +1,37 @@
 spring.application.name=shopping-cart-spring
 
-# Server
+# Server (Render sets PORT)
 server.port=${PORT:8080}
 
-# Neon PostgreSQL
-# Option A (Render / Neon dashboard): set DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
-# Option B: set explicit JDBC vars:
+# Database — Neon PostgreSQL
+# Copy .env.example to .env and set DATABASE_URL from Neon dashboard → Connect
+# DatabaseConfig parses DATABASE_URL when set; JDBC fallback below is optional
 spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/shoppingcart}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME:shoppingcart}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:shoppingcart}
 spring.datasource.driver-class-name=org.postgresql.Driver
 
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=false
+spring.jpa.open-in-view=false
 
 management.endpoints.web.exposure.include=health
+management.endpoint.health.show-details=when_authorized
 
-# JWT
-jwt.secret=${JWT_SECRET:<jwt_secret>}
-jwt.expiration=3600000
+# JWT — JWT_SECRET in .env (min 32 characters)
+jwt.secret=${JWT_SECRET:replace-with-a-long-random-secret}
+jwt.expiration=${JWT_EXPIRATION:3600000}
 
-# Static Resources for public access
-spring.web.resources.static-locations=classpath:/static/,classpath:/public/
+# Stripe
+stripe.api.key=${STRIPE_API_KEY:sk_test_placeholder}
+stripe.webhook.secret=${STRIPE_WEBHOOK_SECRET:}
 
-# Stripe API
-stripe.api.key=${STRIPE_API_KEY:<sk_test_secret_key>}
-stripe.webhook.secret=${STRIPE_WEBHOOK_SECRET:<whsec_webhook_signing_secret>}
-
-# Flutter client base URL (Stripe redirect fallback for web checkout)
+# Flutter client
 app.frontend.base-url=${APP_FRONTEND_BASE_URL:http://localhost:8081}
 
-# Flutter mobile deep links — uncomment for native checkout return URLs
-# app.checkout.success-url=shoppingcart://payment/success?session_id={CHECKOUT_SESSION_ID}
-# app.checkout.cancel-url=shoppingcart://cart
+# Optional mobile deep links (Flutter native checkout return)
+app.checkout.success-url=${APP_CHECKOUT_SUCCESS_URL:}
+app.checkout.cancel-url=${APP_CHECKOUT_CANCEL_URL:}
 
-# Docker local stack: docker compose up --build
-# Uses Postgres 16 in docker-compose.yml with profile "docker" (see application-docker.properties)
-
-# Render deploy: connect repo, set root directory to shopping-cart-backend, use render.yaml
-# Required env on Render: DATABASE_URL (Neon connection string), JWT_SECRET, STRIPE_API_KEY
+# Run: export $(grep -v '^#' .env | xargs) && ./mvnw spring-boot:run
+# Docker: docker compose --env-file .env up --build

@@ -44,3 +44,5 @@ src/main/resources/static/images/products/*
 
 ### Node (removed — was Tailwind for admin UI) ###
 node_modules/
+
+.env

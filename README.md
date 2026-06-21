@@ -1,49 +1,53 @@
 # Shopping cart backend
 
-Spring Boot **REST API** and **PostgreSQL** (Neon) for the shopping cart app. JWT auth, Stripe checkout, and product image static files. No server-side HTML UI.
+Spring Boot **REST API** and **Neon PostgreSQL** for the shopping cart app. JWT auth, Stripe checkout, and product image static files.
 
 ## Requirements
 
 - Java 17
 - Maven 3.9+
-- PostgreSQL (Neon for production, or local Postgres via Docker Compose)
+- [Neon](https://neon.tech) PostgreSQL database (free tier works)
 
 ## Configuration
 
-Copy the example properties file and fill in real values:
+1. Create a Neon project and copy the connection string from **Connect**.
+2. Copy env template and fill in values:
 
 ```bash
-cp src/main/resources/application.properties.example src/main/resources/application.properties
+cp .env.example .env
+# Edit .env — set DATABASE_URL to your Neon postgresql://… string
 ```
 
 Key settings:
 
-- **Database** — `SPRING_DATASOURCE_*` or `DATABASE_URL` (Neon connection string on Render)
-- **JWT** — `JWT_SECRET`
-- **Stripe** — `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`
-- **Flutter client** — `APP_FRONTEND_BASE_URL` (default `http://localhost:8081`)
-
-See `application.properties.example` and `.env.example` for all keys.
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | Neon connection string (`postgresql://…?sslmode=require`) |
+| `JWT_SECRET` | JWT signing key (32+ chars) |
+| `STRIPE_API_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `APP_FRONTEND_BASE_URL` | Flutter web URL for Stripe redirects |
 
 ## Run locally
 
+**Option A — Maven (recommended for development)**
+
 ```bash
+export $(grep -v '^#' .env | xargs)   # load DATABASE_URL from .env
 ./mvnw spring-boot:run
+```
+
+**Option B — Docker**
+
+```bash
+docker compose --env-file .env up --build
 ```
 
 API base: **http://localhost:8080/api**
 
-## Docker (pre-deploy smoke test)
-
-```bash
-docker compose up --build
-```
-
-Starts Postgres 16 + API on port 8080.
-
 ## Render deploy
 
-Use `render.yaml` with `DATABASE_URL` pointing at Neon.
+Use `render.yaml` with `DATABASE_URL` pointing at your Neon database.
 
 ## Tests
 
@@ -51,10 +55,10 @@ Use `render.yaml` with `DATABASE_URL` pointing at Neon.
 ./mvnw test
 ```
 
-Tests use in-memory H2 in PostgreSQL compatibility mode.
+Integration tests use **Testcontainers** with PostgreSQL 16 (real Postgres, not H2).
 
 ## Tech stack
 
 - Spring Boot 3.5 (Web, Data JPA, Actuator)
-- PostgreSQL / Neon (runtime), H2 (tests)
+- PostgreSQL / Neon
 - JWT (jjwt), Stripe Java SDK, Lombok
