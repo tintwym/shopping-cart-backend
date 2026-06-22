@@ -12,8 +12,11 @@ import com.stripe.param.PriceCreateParams;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,15 +44,15 @@ public class ProductService implements IProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Product> getAllProducts() {
-        // Return all products from database with isDeleted column false
-        return productRepository.findByIsDeletedFalse();
+        return productRepository.findByIsDeletedFalseWithImages();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Product getProductById(UUID id) {
-        // Find product by ID and return it if found, otherwise return null
-        return productRepository.findById(Objects.requireNonNull(id)).orElse(null);
+        return productRepository.findActiveByIdWithImages(Objects.requireNonNull(id)).orElse(null);
     }
 
     @Override
@@ -81,7 +84,7 @@ public class ProductService implements IProductService {
         product.setStripeProductId(stripeProductId); // Assuming you have this field in your Product entity
 
         // Create price in Stripe
-        String stripePriceId = createStripePrice(stripeProductId, addProductRequest.getPrice().doubleValue());
+        String stripePriceId = createStripePrice(stripeProductId, addProductRequest.getPrice());
         product.setStripePriceId(stripePriceId); // Assuming you have this field in your Product entity
 
         // Save product in database
@@ -104,11 +107,11 @@ public class ProductService implements IProductService {
         }
     }
 
-    private String createStripePrice(String productId, Double amount) {
+    private String createStripePrice(String productId, BigDecimal amount) {
         try {
             PriceCreateParams params = PriceCreateParams.builder()
                     .setProduct(productId)
-                    .setUnitAmount((long) (amount * 100)) // Amount in cents
+                    .setUnitAmount(toStripeCents(amount))
                     .setCurrency("sgd")
                     .build();
 
@@ -119,18 +122,27 @@ public class ProductService implements IProductService {
         }
     }
 
-    @Override
-    public Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages) {
-        // Find the product by ID
-        Product product = productRepository.findById(Objects.requireNonNull(id)).orElseThrow(() -> new RuntimeException("Product not found"));
+    private static long toStripeCents(BigDecimal amount) {
+        return amount.multiply(BigDecimal.valueOf(100)).setScale(0, RoundingMode.HALF_UP).longValueExact();
+    }
 
-        // Update the product details from the request
+    @Override
+    @Transactional
+    public Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages) {
+        Product product = productRepository.findById(Objects.requireNonNull(id))
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        if (product.isDeleted()) {
+            throw new IllegalStateException("Product is no longer available");
+        }
+
+        BigDecimal newPrice = updateProductRequest.getPrice();
+        boolean priceChanged = product.getPrice().compareTo(newPrice) != 0;
+
         product.setName(updateProductRequest.getName());
         product.setDescription(updateProductRequest.getDescription());
-        product.setPrice(updateProductRequest.getPrice());
+        product.setPrice(newPrice);
         product.setStock(updateProductRequest.getStock());
 
-        // If there are new images, handle image saving
         if (newImages != null && newImages.length > 0) {
             List<ProductImage> productImages = product.getImages();
 
@@ -146,11 +158,13 @@ public class ProductService implements IProductService {
                 }
             }
 
-            // Update product's image list
             product.setImages(productImages);
         }
 
-        // Save updated product to the database and return the saved product
+        if (priceChanged && product.getStripeProductId() != null && !product.getStripeProductId().isBlank()) {
+            product.setStripePriceId(createStripePrice(product.getStripeProductId(), newPrice));
+        }
+
         return productRepository.save(product);
     }
 

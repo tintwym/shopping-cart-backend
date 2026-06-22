@@ -32,7 +32,7 @@ public class CartApiController {
     }
 
     @GetMapping("/show")
-    public ResponseEntity<?> getCartByUser(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ResponseEntity<?> getCartByUser(@RequestHeader("Authorization") String token) {
         // Add Cache-Control header
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-store, must-revalidate");
@@ -41,7 +41,10 @@ public class CartApiController {
     }
 
     @PostMapping("/store")
-    public ResponseEntity<?> addProductToCart(@RequestHeader(value = "Authorization", required = false) String token, @RequestParam UUID productId, @RequestParam int quantity) {
+    public ResponseEntity<?> addProductToCart(
+            @RequestHeader("Authorization") String token,
+            @RequestParam UUID productId,
+            @RequestParam int quantity) {
         cartService.addProductToCart(token, productId, quantity);
 
         // Add Cache-Control header
@@ -52,7 +55,10 @@ public class CartApiController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateProductInCart(@RequestHeader(value = "Authorization", required = false) String token, @RequestParam UUID productId, @RequestParam int quantity) {
+    public ResponseEntity<?> updateProductInCart(
+            @RequestHeader("Authorization") String token,
+            @RequestParam UUID productId,
+            @RequestParam int quantity) {
         cartService.updateProductInCart(token, productId, quantity);
 
         // Add Cache-Control header
@@ -63,7 +69,9 @@ public class CartApiController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteProductFromCart(@RequestHeader(value = "Authorization", required = false) String token, @RequestParam UUID productId) {
+    public ResponseEntity<?> deleteProductFromCart(
+            @RequestHeader("Authorization") String token,
+            @RequestParam UUID productId) {
         cartService.deleteProductFromCart(token, productId);
 
         // Add Cache-Control header

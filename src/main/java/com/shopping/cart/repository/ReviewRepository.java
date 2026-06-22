@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findByProductId(UUID productId);
+
+    boolean existsByOrderItem_Id(UUID orderItemId);
 }

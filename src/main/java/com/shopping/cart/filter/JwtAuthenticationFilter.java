@@ -20,39 +20,59 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (!path.startsWith("/api/")) {
+            return true;
+        }
+        if (path.startsWith("/api/auth/")) {
+            return true;
+        }
+        if ("/api/products/index".equals(path)) {
+            return true;
+        }
+        if (path.startsWith("/api/products/show/")) {
+            return true;
+        }
+        if (path.startsWith("/api/reviews/product/")) {
+            return true;
+        }
+        if (path.startsWith("/api/stripe/webhook")) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
-        String jwt = null;
-        String username = null;
-
-        // Check if the Authorization header is present and starts with "Bearer "
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);  // Extract the token by removing "Bearer " prefix
-            try {
-                username = jwtUtility.extractUsername(jwt);  // Extract the username from the token
-            } catch (Exception e) {
-                logger.error("Error extracting username from JWT: " + e.getMessage());
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
-        // Validate the token
-        if (username != null && jwtUtility.isTokenValid(jwt, username)) {
-            // You can set user info in the request here if needed
-            request.setAttribute("username", username);
-
-            // Check if token needs refreshing
-            if (jwtUtility.shouldRefreshToken(jwt)) {
-                // Generate a new token and add it to the response headers
-                String newToken = jwtUtility.generateToken(username);
-                response.setHeader("Authorization", "Bearer " + newToken);
-            }
-        } else {
-            // If token is invalid, return a 401 Unauthorized response
+        String jwt = authHeader.substring(7);
+        String username;
+        try {
+            username = jwtUtility.extractUsername(jwt);
+        } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return;  // Stop further filter chain
+            return;
+        }
+
+        if (!jwtUtility.isTokenValid(jwt, username)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        request.setAttribute("username", username);
+
+        if (jwtUtility.shouldRefreshToken(jwt)) {
+            String newToken = jwtUtility.generateToken(username);
+            response.setHeader("Authorization", "Bearer " + newToken);
         }
 
         filterChain.doFilter(request, response);

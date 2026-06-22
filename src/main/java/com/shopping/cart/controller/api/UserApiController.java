@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/api/users")
 public class UserApiController {
@@ -35,15 +33,7 @@ public class UserApiController {
 
     @GetMapping("/token")
     public ResponseEntity<User> getUserFromToken(@RequestHeader(value = "Authorization", required = false) String token) {
-        // Check if the token is present
-        if (token == null || !token.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization token is missing or invalid");
-        }
-
-        // Get the user from the JWT token
-        User user = userService.getUserFromToken(token);
-
-        // Return the user and a 200 OK response
+        User user = userService.requireUser(token);
         return ResponseEntity.ok(user);
     }
 
@@ -56,10 +46,5 @@ public class UserApiController {
         }
         userService.changePassword(token, request);
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("show/{id}")
-    public ResponseEntity<?> show(@PathVariable UUID id) {
-        return ResponseEntity.ok(userService.getUserById(id));
     }
 }

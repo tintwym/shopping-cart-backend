@@ -20,6 +20,7 @@ public interface IUserService {
     AuthResponse loginUser(LoginUserRequest loginUserRequest);
     boolean loginAdmin(LoginAdminRequest loginAdminRequest);
     void changePassword(String token, ChangePasswordRequest request);
+    User requireUser(String authorizationHeader);
     User requireAdmin(String authorizationHeader);
     boolean isAdmin(User user);
 }

@@ -3,6 +3,7 @@ package com.shopping.cart.controller.api;
 import com.shopping.cart.service.CheckoutFulfillmentService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +26,6 @@ public class StripeWebhookController {
     @PostMapping("/webhook")
     public ResponseEntity<String> webhook(@RequestBody String payload,
                                           @RequestHeader(name = "Stripe-Signature", required = false) String sigHeader) {
-        // If no webhook secret is configured, do not process events.
         if (stripeWebhookSecret == null || stripeWebhookSecret.isBlank()) {
             return ResponseEntity.status(501).body("Stripe webhook not configured");
         }
@@ -41,18 +41,31 @@ public class StripeWebhookController {
         }
 
         if ("checkout.session.completed".equals(event.getType())) {
-            Object dataObject = event.getDataObjectDeserializer().getObject().orElse(null);
-            if (dataObject instanceof Session session) {
-                try {
-                    checkoutFulfillmentService.fulfillBySessionId(session.getId());
-                } catch (Exception e) {
-                    // Returning 500 makes Stripe retry; keep it simple for now.
-                    return ResponseEntity.status(500).body("Webhook processing failed");
-                }
+            Session session = deserializeSession(event);
+            if (session == null || session.getId() == null) {
+                return ResponseEntity.status(500).body("Could not read checkout session");
+            }
+            try {
+                checkoutFulfillmentService.fulfillBySessionId(session.getId());
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body("Webhook processing failed");
             }
         }
 
         return ResponseEntity.ok("ok");
     }
-}
 
+    private static Session deserializeSession(Event event) {
+        var deserializer = event.getDataObjectDeserializer();
+        StripeObject stripeObject = deserializer.getObject().orElse(null);
+        if (stripeObject instanceof Session session) {
+            return session;
+        }
+        try {
+            stripeObject = deserializer.deserializeUnsafe();
+        } catch (Exception ignored) {
+            return null;
+        }
+        return stripeObject instanceof Session session ? session : null;
+    }
+}

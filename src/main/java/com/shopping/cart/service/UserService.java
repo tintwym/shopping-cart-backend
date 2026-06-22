@@ -37,34 +37,43 @@ public class UserService implements IUserService {
 
     @Override
     public boolean verifyToken(String token, String usernameJson) {
-        // Remove the "Bearer " prefix from the token
-        token = token.replace("Bearer ", "");
-
+        String jwt = normalizeBearer(token);
         try {
-            // Convert the JSON string to extract the actual username
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(usernameJson);
-
-            // Extract the "username" field from the JSON
             String username = jsonNode.get("username").asText();
-
-            // Check if the token is valid using the extracted username
-            return jwtUtility.isTokenValid(token, username);
+            return jwtUtility.isTokenValid(jwt, username);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to extract username from JSON", e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid username payload");
         }
     }
 
     @Override
     public User getUserFromToken(String token) {
-        // Remove the "Bearer " prefix from the token
-        token = token.replace("Bearer ", "");
+        return requireUser(token);
+    }
 
-        // Get the username from the token
-        String username = jwtUtility.extractUsername(token);
-
-        // Find the user by username
-        return userRepository.findByUsername(username);
+    @Override
+    public User requireUser(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization token is missing or invalid");
+        }
+        String jwt = authorizationHeader.substring(7);
+        try {
+            String username = jwtUtility.extractUsername(jwt);
+            if (!jwtUtility.isTokenValid(jwt, username)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+            }
+            User user = userRepository.findByUsername(username);
+            if (user == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+            }
+            return user;
+        } catch (ResponseStatusException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
     }
 
     @Override
@@ -79,47 +88,38 @@ public class UserService implements IUserService {
 
     @Override
     public AuthResponse registerUser(RegisterUserRequest registerUserRequest) {
-        // Hash the password before saving it to the database
+        if (registerUserRequest.getPassword() == null || registerUserRequest.getPassword().length() < 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 8 characters");
+        }
+        if (userRepository.findByUsername(registerUserRequest.getUsername()) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
+        }
+        if (userRepository.findByEmail(registerUserRequest.getEmail()) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
+        }
+
         registerUserRequest.setPassword(PasswordHashingUtility.hashPassword(registerUserRequest.getPassword()));
-
-        // Map the RegisterUserRequest to a User entity
         User user = UserMapper.fromRegisterUserRequest(registerUserRequest);
-
-        // Fetch the role from the role service
         Role role = roleRepository.findByName("User");
         user.setRole(role);
-
-        // Save the user to the database
         userRepository.save(user);
 
-        // Generate JSON Web Token
         String token = jwtUtility.generateToken(user.getUsername());
-
-        // Return the AuthResponse object with the token
         return new AuthResponse(token);
     }
 
     @Override
     public boolean registerAdmin(RegisterAdminRequest registerAdminRequest) {
-        // Hash the password before saving it to the database
         registerAdminRequest.setPassword(PasswordHashingUtility.hashPassword(registerAdminRequest.getPassword()));
-
-        // Map the RegisterUserRequest to a User entity
         User user = UserMapper.fromRegisterAdminRequest(registerAdminRequest);
-
-        // Fetch the role from the role service
         Role role = roleRepository.findByName("Admin");
         user.setRole(role);
-
-        // Save the user to the database
         userRepository.save(user);
-
         return true;
     }
 
     @Override
     public AuthResponse loginUser(LoginUserRequest loginUserRequest) {
-        // Find the user by username
         User user = userRepository.findByUsername(loginUserRequest.getUsername());
 
         if (user == null || user.getRole() == null || !Objects.equals(user.getRole().getName(), "User")) {
@@ -127,11 +127,8 @@ public class UserService implements IUserService {
         }
 
         if (PasswordHashingUtility.verifyPassword(loginUserRequest.getPassword(), user.getPassword())) {
-                // Generate JSON Web Token
-                String token = jwtUtility.generateToken(user.getUsername());
-
-                // Return the AuthResponse object with the token
-                return new AuthResponse(token);
+            String token = jwtUtility.generateToken(user.getUsername());
+            return new AuthResponse(token);
         }
 
         return null;
@@ -139,11 +136,11 @@ public class UserService implements IUserService {
 
     @Override
     public boolean loginAdmin(LoginAdminRequest loginAdminRequest) {
-        // Find the user by username
         User user = userRepository.findByUsername(loginAdminRequest.getUsername());
-
-        // Check if the user exists and the password is correct
-        return user != null && user.getRole().getName().equals("Admin") && PasswordHashingUtility.verifyPassword(loginAdminRequest.getPassword(), user.getPassword());
+        return user != null
+                && user.getRole() != null
+                && "Admin".equals(user.getRole().getName())
+                && PasswordHashingUtility.verifyPassword(loginAdminRequest.getPassword(), user.getPassword());
     }
 
     @Override
@@ -156,10 +153,7 @@ public class UserService implements IUserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be at least 8 characters");
         }
 
-        User user = getUserFromToken(token);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
-        }
+        User user = requireUser(token);
         if (!PasswordHashingUtility.verifyPassword(request.getCurrentPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
         }
@@ -170,7 +164,7 @@ public class UserService implements IUserService {
 
     @Override
     public User requireAdmin(String authorizationHeader) {
-        User user = getUserFromToken(normalizeBearer(authorizationHeader));
+        User user = requireUser(authorizationHeader);
         if (!isAdmin(user)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
         }

@@ -8,6 +8,7 @@ import com.shopping.cart.interfaces.ICartService;
 import com.shopping.cart.repository.CartRepository;
 import com.shopping.cart.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -27,12 +28,10 @@ public class CartService implements ICartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getCartItemCount(String token) {
-        // Get the user from the token
-        User user = userService.getUserFromToken(token);
-
-        // Retrieve the cart by user
-        Cart cart = cartRepository.findByUser(user);
+        User user = userService.requireUser(token);
+        Cart cart = cartRepository.findByUserWithItems(user);
 
         if (cart == null || cart.getCartItems().isEmpty()) {
             return 0; // Return 0 if no cart or cart is empty
@@ -45,20 +44,19 @@ public class CartService implements ICartService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Cart getCartByUser(String token) {
-        // Get the user from the token
-        User user = userService.getUserFromToken(token);
-
-        return cartRepository.findByUser(user);
+        User user = userService.requireUser(token);
+        return cartRepository.findByUserWithItems(user);
     }
 
     @Override
+    @Transactional
     public void addProductToCart(String token, UUID productId, int quantity) {
-        // Get the user from the token
-        User user = userService.getUserFromToken(token);
+        User user = userService.requireUser(token);
 
         // Retrieve the cart by user. If no cart exists, create a new one and save it.
-        Cart cart = cartRepository.findByUser(user);
+        Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null) {
             cart = new Cart(BigDecimal.ZERO, user);
             cart = cartRepository.save(cart); // Save the new cart before adding items
@@ -113,12 +111,12 @@ public class CartService implements ICartService {
 
 
     @Override
+    @Transactional
     public void updateProductInCart(String token, UUID productId, int quantity) {
-        // Get the user from the token
-        User user = userService.getUserFromToken(token);
+        User user = userService.requireUser(token);
 
         // Retrieve the cart by user. If no cart exists, return.
-        Cart cart = cartRepository.findByUser(user);
+        Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null) {
             return;
         }
@@ -173,12 +171,12 @@ public class CartService implements ICartService {
     }
 
     @Override
+    @Transactional
     public void deleteProductFromCart(String token, UUID productId) {
-        // Get the user from the token
-        User user = userService.getUserFromToken(token);
+        User user = userService.requireUser(token);
 
         // Retrieve the cart by user. If no cart exists, return.
-        Cart cart = cartRepository.findByUser(user);
+        Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null) {
             return;
         }

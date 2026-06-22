@@ -5,6 +5,7 @@ import com.shopping.cart.entity.User;
 import com.shopping.cart.interfaces.IOrderService;
 import com.shopping.cart.repository.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,8 +20,9 @@ public class OrderService implements IOrderService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> getOrderHistory(String token) {
-        User user = userService.getUserFromToken(token);
-        return orderRepository.findByUser(user);
+        User user = userService.requireUser(token);
+        return orderRepository.findByUserWithItems(user);
     }
 }

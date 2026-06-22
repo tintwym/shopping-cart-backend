@@ -16,6 +16,8 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -59,7 +61,7 @@ public class CheckoutService implements ICheckoutService {
 
     @Override
     public CheckoutSessionResponse checkout(String token) {
-        User user = userService.getUserFromToken(token);
+        User user = userService.requireUser(token);
 
         Cart cart = cartRepository.findByUser(user);
         if (cart == null || cart.getCartItems().isEmpty()) {
@@ -91,7 +93,7 @@ public class CheckoutService implements ICheckoutService {
                         .setPriceData(
                                 SessionCreateParams.LineItem.PriceData.builder()
                                         .setCurrency("sgd")
-                                        .setUnitAmount(product.getPrice().longValue() * 100)
+                                        .setUnitAmount(toStripeCents(product.getPrice()))
                                         .setProductData(
                                                 SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                         .setName(product.getName())
@@ -144,11 +146,15 @@ public class CheckoutService implements ICheckoutService {
             throw new IllegalStateException("sessionId is required");
         }
 
-        User user = userService.getUserFromToken(token);
+        User user = userService.requireUser(token);
         try {
             checkoutFulfillmentService.confirmSessionForUser(sessionId, user);
         } catch (StripeException e) {
             throw new RuntimeException("Unable to confirm checkout with Stripe", e);
         }
+    }
+
+    private static long toStripeCents(BigDecimal amount) {
+        return amount.multiply(BigDecimal.valueOf(100)).setScale(0, RoundingMode.HALF_UP).longValueExact();
     }
 }
