@@ -77,3 +77,7 @@ Integration tests use **Testcontainers** with PostgreSQL 16 (real Postgres, not 
 - Spring Boot 3.5 (Web, Data JPA, Actuator)
 - PostgreSQL / Neon
 - JWT (jjwt), Stripe Java SDK, Cloudinary, Lombok
+
+## License
+
+MIT — see [LICENSE](../LICENSE) in the repository root.
