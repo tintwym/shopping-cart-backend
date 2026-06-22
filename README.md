@@ -54,15 +54,22 @@ API base: **http://localhost:8080/api**
 
 ## Render deploy
 
-Use Docker with `render.yaml`. Set `DATABASE_URL` to your Neon connection string plus the other env vars above.
+Deploy files for this service:
 
-**Monorepo:** If the GitHub repo is the full `shopping-cart` project (not only this folder), set **Root Directory** to `shopping-cart-backend` in Render → Settings. Otherwise the build fails with `Dockerfile: no such file or directory`. The repo root `render.yaml` sets `rootDir` automatically for Blueprint deploys.
+| File | Location |
+|------|----------|
+| `Dockerfile`, `.dockerignore` | This folder (`shopping-cart-backend/`) |
+| `render.yaml` | Repository root (Blueprint) |
+
+Set `DATABASE_URL` and other env vars per [DEPLOY.md](../DEPLOY.md).
+
+**Monorepo:** In Render → Settings, set **Root Directory** to `shopping-cart-backend`. The repo-root `render.yaml` sets `rootDir` automatically for Blueprint deploys.
 
 | Setting | Value |
 |---------|--------|
 | Runtime | Docker |
 | Root Directory | `shopping-cart-backend` |
-| Health check | `/actuator/health` |
+| Health check | `/actuator/health/liveness` |
 
 ## Tests
 
