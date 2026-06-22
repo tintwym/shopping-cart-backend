@@ -1,5 +1,6 @@
 package com.shopping.cart.controller.api;
 
+import com.shopping.cart.dto.request.ChangePasswordRequest;
 import com.shopping.cart.entity.User;
 import com.shopping.cart.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,17 @@ public class UserApiController {
 
         // Return the user and a 200 OK response
         return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestBody ChangePasswordRequest request) {
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization token is missing or invalid");
+        }
+        userService.changePassword(token, request);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("show/{id}")

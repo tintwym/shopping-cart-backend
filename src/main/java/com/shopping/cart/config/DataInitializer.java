@@ -3,8 +3,12 @@ package com.shopping.cart.config;
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.entity.ProductImage;
 import com.shopping.cart.entity.Role;
+import com.shopping.cart.entity.User;
 import com.shopping.cart.repository.ProductRepository;
 import com.shopping.cart.repository.RoleRepository;
+import com.shopping.cart.repository.UserRepository;
+import com.shopping.cart.utility.PasswordHashingUtility;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -17,10 +21,21 @@ import java.util.List;
 public class DataInitializer implements ApplicationRunner {
     private final RoleRepository roleRepository;
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
-    public DataInitializer(RoleRepository roleRepository, ProductRepository productRepository) {
+    @Value("${app.admin.seed-username:}")
+    private String adminSeedUsername;
+
+    @Value("${app.admin.seed-password:}")
+    private String adminSeedPassword;
+
+    public DataInitializer(
+            RoleRepository roleRepository,
+            ProductRepository productRepository,
+            UserRepository userRepository) {
         this.roleRepository = roleRepository;
         this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -28,6 +43,7 @@ public class DataInitializer implements ApplicationRunner {
         seedRole("User");
         seedRole("Admin");
         seedSampleProducts();
+        seedAdminUser();
     }
 
     private void seedRole(String name) {
@@ -42,16 +58,16 @@ public class DataInitializer implements ApplicationRunner {
         }
         saveProduct("Wireless Headphones",
                 "Noise-cancelling over-ear headphones with 30-hour battery life.",
-                "129.00", 25, "seed-headphones.jpg");
+                "129.00", 25, "https://picsum.photos/seed/headphones/600/600");
         saveProduct("Smart Watch",
                 "Track fitness, sleep, and notifications on your wrist.",
-                "249.00", 15, "seed-watch.jpg");
+                "249.00", 15, "https://picsum.photos/seed/watch/600/600");
         saveProduct("USB-C Hub",
                 "7-in-1 adapter with HDMI, USB 3.0, and SD card reader.",
-                "49.00", 40, "seed-hub.jpg");
+                "49.00", 40, "https://picsum.photos/seed/hub/600/600");
         saveProduct("Mechanical Keyboard",
                 "Compact layout with hot-swappable switches.",
-                "89.00", 20, "seed-keyboard.jpg");
+                "89.00", 20, "https://picsum.photos/seed/keyboard/600/600");
     }
 
     private void saveProduct(String name, String description, String price, int stock, String imagePath) {
@@ -68,5 +84,27 @@ public class DataInitializer implements ApplicationRunner {
         product.setImages(images);
 
         productRepository.save(product);
+    }
+
+    private void seedAdminUser() {
+        if (adminSeedUsername == null || adminSeedUsername.isBlank()
+                || adminSeedPassword == null || adminSeedPassword.isBlank()) {
+            return;
+        }
+        if (userRepository.findByUsername(adminSeedUsername) != null) {
+            return;
+        }
+        Role adminRole = roleRepository.findByName("Admin");
+        if (adminRole == null) {
+            return;
+        }
+        User admin = new User();
+        admin.setFirstName("Store");
+        admin.setLastName("Admin");
+        admin.setUsername(adminSeedUsername);
+        admin.setEmail(adminSeedUsername + "@pixeltech.local");
+        admin.setPassword(PasswordHashingUtility.hashPassword(adminSeedPassword));
+        admin.setRole(adminRole);
+        userRepository.save(admin);
     }
 }

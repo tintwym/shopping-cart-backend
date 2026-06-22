@@ -16,3 +16,13 @@ services:
         sync: false
       - key: APP_FRONTEND_BASE_URL
         sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: ADMIN_SEED_USERNAME
+        sync: false
+      - key: ADMIN_SEED_PASSWORD
+        sync: false

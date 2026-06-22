@@ -1,6 +1,6 @@
 # Shopping cart backend
 
-Spring Boot **REST API** and **Neon PostgreSQL** for the shopping cart app. JWT auth, Stripe checkout, and product image static files.
+Spring Boot **REST API** and **Neon PostgreSQL** for the shopping cart app. JWT auth, Stripe checkout, and Cloudinary product images.
 
 ## Requirements
 
@@ -27,6 +27,13 @@ Key settings:
 | `STRIPE_API_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `APP_FRONTEND_BASE_URL` | Flutter web URL for Stripe redirects |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `ADMIN_SEED_USERNAME` | Optional first admin username (created on startup if missing) |
+| `ADMIN_SEED_PASSWORD` | Password for the seeded admin |
+
+See **[DEPLOY.md](../DEPLOY.md)** for the full production checklist (Render, Vercel, Stripe webhook).
 
 ## Run locally
 
@@ -61,4 +68,4 @@ Integration tests use **Testcontainers** with PostgreSQL 16 (real Postgres, not 
 
 - Spring Boot 3.5 (Web, Data JPA, Actuator)
 - PostgreSQL / Neon
-- JWT (jjwt), Stripe Java SDK, Lombok
+- JWT (jjwt), Stripe Java SDK, Cloudinary, Lombok

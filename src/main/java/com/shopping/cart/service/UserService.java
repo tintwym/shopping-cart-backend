@@ -2,6 +2,7 @@ package com.shopping.cart.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shopping.cart.dto.request.ChangePasswordRequest;
 import com.shopping.cart.dto.request.LoginAdminRequest;
 import com.shopping.cart.dto.request.LoginUserRequest;
 import com.shopping.cart.dto.request.RegisterAdminRequest;
@@ -15,7 +16,9 @@ import com.shopping.cart.repository.RoleRepository;
 import com.shopping.cart.repository.UserRepository;
 import com.shopping.cart.utility.JwtUtility;
 import com.shopping.cart.utility.PasswordHashingUtility;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -141,5 +144,51 @@ public class UserService implements IUserService {
 
         // Check if the user exists and the password is correct
         return user != null && user.getRole().getName().equals("Admin") && PasswordHashingUtility.verifyPassword(loginAdminRequest.getPassword(), user.getPassword());
+    }
+
+    @Override
+    public void changePassword(String token, ChangePasswordRequest request) {
+        if (request.getCurrentPassword() == null || request.getCurrentPassword().isBlank()
+                || request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current and new password are required");
+        }
+        if (request.getNewPassword().length() < 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be at least 8 characters");
+        }
+
+        User user = getUserFromToken(token);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found");
+        }
+        if (!PasswordHashingUtility.verifyPassword(request.getCurrentPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
+        }
+
+        user.setPassword(PasswordHashingUtility.hashPassword(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public User requireAdmin(String authorizationHeader) {
+        User user = getUserFromToken(normalizeBearer(authorizationHeader));
+        if (!isAdmin(user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
+        }
+        return user;
+    }
+
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && user.getRole() != null
+                && "Admin".equalsIgnoreCase(user.getRole().getName());
+    }
+
+    private static String normalizeBearer(String authorizationHeader) {
+        if (authorizationHeader == null) {
+            return "";
+        }
+        return authorizationHeader.startsWith("Bearer ")
+                ? authorizationHeader.substring(7)
+                : authorizationHeader;
     }
 }

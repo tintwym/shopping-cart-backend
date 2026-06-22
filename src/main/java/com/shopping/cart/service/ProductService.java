@@ -14,11 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,13 +22,16 @@ import java.util.UUID;
 @Service
 public class ProductService implements IProductService {
     private final ProductRepository productRepository;
-    private final String uploadDir = "src/main/resources/static/images/products/";
+    private final CloudinaryImageService cloudinaryImageService;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(
+            ProductRepository productRepository,
+            CloudinaryImageService cloudinaryImageService) {
         this.productRepository = productRepository;
+        this.cloudinaryImageService = cloudinaryImageService;
     }
 
     // Initialize Stripe with the API key from application.properties
@@ -64,22 +62,15 @@ public class ProductService implements IProductService {
 
         List<ProductImage> productImages = new ArrayList<>();
 
-        // Handle image saving (local storage)
         for (MultipartFile image : images) {
-            if (!image.isEmpty()) {
-                String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
-                try {
-                    Path uploadPath = Paths.get(uploadDir + fileName);
-                    Files.createDirectories(uploadPath.getParent());
-                    Files.copy(image.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
-
-                    ProductImage productImage = new ProductImage(fileName, "Alt text for " + fileName);
-                    productImage.setProduct(product);
-                    productImages.add(productImage);
-
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed to save image: " + fileName, e);
-                }
+            if (image != null && !image.isEmpty()) {
+                String imageUrl = cloudinaryImageService.upload(image);
+                String altText = image.getOriginalFilename() != null
+                        ? image.getOriginalFilename()
+                        : product.getName();
+                ProductImage productImage = new ProductImage(imageUrl, altText);
+                productImage.setProduct(product);
+                productImages.add(productImage);
             }
         }
 
@@ -143,22 +134,15 @@ public class ProductService implements IProductService {
         if (newImages != null && newImages.length > 0) {
             List<ProductImage> productImages = product.getImages();
 
-            // Save new images
             for (MultipartFile newImage : newImages) {
-                if (!newImage.isEmpty()) {
-                    String fileName = UUID.randomUUID() + "_" + newImage.getOriginalFilename();
-                    try {
-                        Path uploadPath = Paths.get(uploadDir + fileName);
-                        Files.createDirectories(uploadPath.getParent());
-                        Files.copy(newImage.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
-
-                        ProductImage productImage = new ProductImage(fileName, "Alt text for " + fileName);
-                        productImage.setProduct(product);
-                        productImages.add(productImage);
-
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to save image: " + fileName, e);
-                    }
+                if (newImage != null && !newImage.isEmpty()) {
+                    String imageUrl = cloudinaryImageService.upload(newImage);
+                    String altText = newImage.getOriginalFilename() != null
+                            ? newImage.getOriginalFilename()
+                            : product.getName();
+                    ProductImage productImage = new ProductImage(imageUrl, altText);
+                    productImage.setProduct(product);
+                    productImages.add(productImage);
                 }
             }
 

@@ -1,5 +1,6 @@
 package com.shopping.cart.interfaces;
 
+import com.shopping.cart.dto.request.ChangePasswordRequest;
 import com.shopping.cart.dto.request.LoginAdminRequest;
 import com.shopping.cart.dto.request.LoginUserRequest;
 import com.shopping.cart.dto.request.RegisterAdminRequest;
@@ -18,4 +19,7 @@ public interface IUserService {
     boolean registerAdmin(RegisterAdminRequest registerAdminRequest);
     AuthResponse loginUser(LoginUserRequest loginUserRequest);
     boolean loginAdmin(LoginAdminRequest loginAdminRequest);
+    void changePassword(String token, ChangePasswordRequest request);
+    User requireAdmin(String authorizationHeader);
+    boolean isAdmin(User user);
 }

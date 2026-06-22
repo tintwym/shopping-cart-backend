@@ -1,9 +1,15 @@
 package com.shopping.cart.controller.api;
 
+import com.shopping.cart.dto.request.AddProductRequest;
+import com.shopping.cart.dto.request.UpdateProductRequest;
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.service.ProductService;
+import com.shopping.cart.service.UserService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,9 +17,11 @@ import java.util.UUID;
 @RequestMapping("/api/products")
 public class ProductApiController {
     private final ProductService productService;
+    private final UserService userService;
 
-    public ProductApiController(ProductService productService) {
+    public ProductApiController(ProductService productService, UserService userService) {
         this.productService = productService;
+        this.userService = userService;
     }
 
     @GetMapping("/index")
@@ -26,18 +34,46 @@ public class ProductApiController {
         return productService.getProductById(id);
     }
 
-//    @PostMapping("/store")
-//    public Product addProduct(@RequestBody AddProductRequest addProductRequest) {
-//        return productService.store(addProductRequest);
-//    }
+    @PostMapping(value = "/store", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Product addProduct(
+            @RequestHeader("Authorization") String token,
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam BigDecimal price,
+            @RequestParam int stock,
+            @RequestParam(value = "images", required = false) MultipartFile[] images) {
+        userService.requireAdmin(token);
+        AddProductRequest request = new AddProductRequest();
+        request.setName(name);
+        request.setDescription(description);
+        request.setPrice(price);
+        request.setStock(stock);
+        return productService.store(request, images != null ? images : new MultipartFile[0]);
+    }
 
-//    @PutMapping("/update/{id}")
-//    public Product updateProduct(@PathVariable UUID id, @RequestBody UpdateProductRequest updateProductRequest) {
-//        return productService.update(id, updateProductRequest);
-//    }
+    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Product updateProduct(
+            @RequestHeader("Authorization") String token,
+            @PathVariable UUID id,
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam BigDecimal price,
+            @RequestParam int stock,
+            @RequestParam(value = "images", required = false) MultipartFile[] images) {
+        userService.requireAdmin(token);
+        UpdateProductRequest request = new UpdateProductRequest();
+        request.setName(name);
+        request.setDescription(description);
+        request.setPrice(price);
+        request.setStock(stock);
+        return productService.update(id, request, images != null ? images : new MultipartFile[0]);
+    }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteProduct(@PathVariable UUID id) {
+    public void deleteProduct(
+            @RequestHeader("Authorization") String token,
+            @PathVariable UUID id) {
+        userService.requireAdmin(token);
         productService.delete(id);
     }
 }
