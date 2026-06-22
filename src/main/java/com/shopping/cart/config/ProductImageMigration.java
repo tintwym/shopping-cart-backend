@@ -9,6 +9,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
@@ -28,10 +29,11 @@ public class ProductImageMigration implements ApplicationRunner {
     }
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         int updated = 0;
-        for (Product product : productRepository.findAll()) {
-            if (product.getImages() == null) {
+        for (Product product : productRepository.findAllWithImages()) {
+            if (product.getImages() == null || product.getImages().isEmpty()) {
                 continue;
             }
             boolean changed = false;

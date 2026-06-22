@@ -23,7 +23,10 @@ public class RenderDatabaseEnvironmentPostProcessor implements EnvironmentPostPr
     }
 
     private static boolean isRender() {
-        String render = System.getenv("RENDER");
-        return render != null && !render.isBlank();
+        return isSet(System.getenv("RENDER")) || isSet(System.getenv("RENDER_SERVICE_ID"));
+    }
+
+    private static boolean isSet(String value) {
+        return value != null && !value.isBlank();
     }
 }

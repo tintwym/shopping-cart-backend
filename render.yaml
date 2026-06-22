@@ -5,7 +5,7 @@ services:
     rootDir: shopping-cart-backend
     dockerfilePath: ./Dockerfile
     plan: free
-    healthCheckPath: /actuator/health
+    healthCheckPath: /actuator/health/liveness
     envVars:
       - key: DATABASE_URL
         sync: false

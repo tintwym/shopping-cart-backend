@@ -21,6 +21,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.isDeleted = false")
     List<Product> findByIsDeletedFalseWithImages();
 
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images")
+    List<Product> findAllWithImages();
+
     Optional<Product> findByStripePriceId(String stripePriceId);
 
     Optional<Product> findByStripeProductId(String stripeProductId);
