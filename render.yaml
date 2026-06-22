@@ -2,6 +2,7 @@ services:
   - type: web
     name: shopping-cart-api
     runtime: docker
+    rootDir: shopping-cart-backend
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /actuator/health
