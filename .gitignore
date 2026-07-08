@@ -29,8 +29,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+### VS Code / Cursor ###
+# .vscode/ is committed for Java extension settings
 
 ### macOS ###
 .DS_Store

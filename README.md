@@ -33,7 +33,7 @@ Key settings:
 | `ADMIN_SEED_USERNAME` | Optional first admin username (created on startup if missing) |
 | `ADMIN_SEED_PASSWORD` | Password for the seeded admin |
 
-See **[DEPLOY.md](../DEPLOY.md)** for the full production checklist (Render, Vercel, Stripe webhook).
+See **[DEPLOY.md](DEPLOY.md)** for the full production checklist (Render, Stripe webhook).
 
 ## Run locally
 
@@ -58,17 +58,14 @@ Deploy files for this service:
 
 | File | Location |
 |------|----------|
-| `Dockerfile`, `.dockerignore` | This folder (`shopping-cart-backend/`) |
-| `render.yaml` | Repository root (Blueprint) |
+| `Dockerfile`, `.dockerignore`, `render.yaml` | Repo root (this repository) |
 
-Set `DATABASE_URL` and other env vars per [DEPLOY.md](../DEPLOY.md).
-
-**Monorepo:** In Render → Settings, set **Root Directory** to `shopping-cart-backend`. The repo-root `render.yaml` sets `rootDir` automatically for Blueprint deploys.
+Set `DATABASE_URL` and other env vars per [DEPLOY.md](DEPLOY.md).
 
 | Setting | Value |
 |---------|--------|
 | Runtime | Docker |
-| Root Directory | `shopping-cart-backend` |
+| Root Directory | *(blank — repo root)* |
 | Health check | `/actuator/health/liveness` |
 
 ## Tests
@@ -87,4 +84,4 @@ Integration tests use **Testcontainers** with PostgreSQL 16 (real Postgres, not 
 
 ## License
 
-MIT — see [LICENSE](../LICENSE) in the repository root.
+MIT — see [LICENSE](LICENSE).

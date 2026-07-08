@@ -8,12 +8,11 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(properties = "DATABASE_URL=")
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 class ShoppingCartSpringApplicationTests {
 
     @Container
     @ServiceConnection
-    @SuppressWarnings("resource")
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Test
