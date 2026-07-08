@@ -25,4 +25,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findByStripePriceId(String stripePriceId);
 
     Optional<Product> findByStripeProductId(String stripeProductId);
+
+    Optional<Product> findByNameIgnoreCase(String name);
 }

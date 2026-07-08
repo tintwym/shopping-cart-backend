@@ -53,21 +53,62 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void seedSampleProducts() {
-        if (productRepository.count() > 0) {
-            return;
-        }
-        saveProduct("Wireless Headphones",
+        seedProductIfMissing("Wireless Headphones",
                 "Noise-cancelling over-ear headphones with 30-hour battery life.",
                 "129.00", 25, "https://picsum.photos/seed/headphones/600/600");
-        saveProduct("Smart Watch",
+        seedProductIfMissing("Smart Watch",
                 "Track fitness, sleep, and notifications on your wrist.",
                 "249.00", 15, "https://picsum.photos/seed/watch/600/600");
-        saveProduct("USB-C Hub",
+        seedProductIfMissing("USB-C Hub",
                 "7-in-1 adapter with HDMI, USB 3.0, and SD card reader.",
                 "49.00", 40, "https://picsum.photos/seed/hub/600/600");
-        saveProduct("Mechanical Keyboard",
+        seedProductIfMissing("Mechanical Keyboard",
                 "Compact layout with hot-swappable switches.",
                 "89.00", 20, "https://picsum.photos/seed/keyboard/600/600");
+        seedProductIfMissing("Wireless Mouse",
+                "Ergonomic silent-click mouse with multi-device pairing.",
+                "39.00", 35, "https://picsum.photos/seed/mouse/600/600");
+        seedProductIfMissing("Portable SSD 1TB",
+                "USB 3.2 external drive for fast backups and travel.",
+                "119.00", 18, "https://picsum.photos/seed/ssd/600/600");
+        seedProductIfMissing("4K Webcam",
+                "Auto-focus camera with built-in mic and privacy shutter.",
+                "79.00", 22, "https://picsum.photos/seed/webcam/600/600");
+        seedProductIfMissing("Bluetooth Speaker",
+                "Water-resistant speaker with 12-hour playtime.",
+                "59.00", 30, "https://picsum.photos/seed/speaker/600/600");
+        seedProductIfMissing("27\" Gaming Monitor",
+                "144Hz IPS panel with low-latency mode.",
+                "329.00", 12, "https://picsum.photos/seed/monitor/600/600");
+        seedProductIfMissing("Laptop Stand",
+                "Aluminium riser with adjustable height and cable slot.",
+                "45.00", 28, "https://picsum.photos/seed/stand/600/600");
+        seedProductIfMissing("65W GaN Charger",
+                "Compact dual-port USB-C charger for phone and laptop.",
+                "34.00", 50, "https://picsum.photos/seed/charger/600/600");
+        seedProductIfMissing("10\" Tablet",
+                "Lightweight tablet for reading, notes, and streaming.",
+                "199.00", 14, "https://picsum.photos/seed/tablet/600/600");
+        seedProductIfMissing("Wireless Earbuds",
+                "In-ear buds with active noise cancellation.",
+                "99.00", 32, "https://picsum.photos/seed/earbuds/600/600");
+        seedProductIfMissing("Smart Home Hub",
+                "Control lights, sensors, and routines from one app.",
+                "69.00", 16, "https://picsum.photos/seed/smarthub/600/600");
+        seedProductIfMissing("Desk Ring Light",
+                "Adjustable LED ring light for video calls and streaming.",
+                "42.00", 24, "https://picsum.photos/seed/ringlight/600/600");
+        seedProductIfMissing("Power Bank 20000mAh",
+                "High-capacity battery with USB-C PD fast charging.",
+                "55.00", 38, "https://picsum.photos/seed/powerbank/600/600");
+    }
+
+    private void seedProductIfMissing(
+            String name, String description, String price, int stock, String imagePath) {
+        if (productRepository.findByNameIgnoreCase(name).isPresent()) {
+            return;
+        }
+        saveProduct(name, description, price, stock, imagePath);
     }
 
     private void saveProduct(String name, String description, String price, int stock, String imagePath) {
