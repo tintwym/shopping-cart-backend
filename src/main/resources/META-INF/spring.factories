@@ -1,2 +1,2 @@
 org.springframework.boot.EnvironmentPostProcessor=\
-com.shopping.cart.config.RenderDatabaseEnvironmentPostProcessor
+com.shopping.cart.config.ProductionDatabaseEnvironmentPostProcessor

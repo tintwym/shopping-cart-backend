@@ -14,7 +14,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Parses Neon/Render {@code DATABASE_URL} (postgresql://…) into a JDBC DataSource.
+ * Parses cloud {@code DATABASE_URL} (postgresql://…) into a JDBC DataSource.
  * When unset, Spring Boot uses {@code spring.datasource.*} from properties.
  */
 @Configuration

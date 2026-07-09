@@ -33,7 +33,7 @@ Key settings:
 | `ADMIN_SEED_USERNAME` | Optional first admin username (created on startup if missing) |
 | `ADMIN_SEED_PASSWORD` | Password for the seeded admin |
 
-See **[DEPLOY.md](DEPLOY.md)** for the full production checklist (Render, Stripe webhook).
+See **[DEPLOY.md](DEPLOY.md)** for the full production checklist (Railway, Stripe webhook).
 
 ## Run locally
 
@@ -52,20 +52,19 @@ docker compose --env-file .env up --build
 
 API base: **http://localhost:8080/api**
 
-## Render deploy
+## Railway deploy
 
 Deploy files for this service:
 
 | File | Location |
 |------|----------|
-| `Dockerfile`, `.dockerignore`, `render.yaml` | Repo root (this repository) |
+| `Dockerfile`, `.dockerignore`, `railway.toml` | Repo root (this repository) |
 
 Set `DATABASE_URL` and other env vars per [DEPLOY.md](DEPLOY.md).
 
 | Setting | Value |
 |---------|--------|
 | Runtime | Docker |
-| Root Directory | *(blank — repo root)* |
 | Health check | `/actuator/health/liveness` |
 
 ## Tests
