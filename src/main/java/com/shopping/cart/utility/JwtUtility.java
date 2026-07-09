@@ -1,8 +1,8 @@
 package com.shopping.cart.utility;
 
+import com.shopping.cart.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -14,17 +14,17 @@ import java.util.Map;
 
 @Component
 public class JwtUtility {
-    @Value("${jwt.secret}")
-    private String secret;
+    private final JwtProperties jwtProperties;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+    public JwtUtility(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     // Refresh window time (e.g., 15 minutes before expiration)
     private static final long REFRESH_WINDOW = 900000; // 15 minutes in milliseconds
 
     private SecretKey signingKey() {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
@@ -41,7 +41,7 @@ public class JwtUtility {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(issuedAt)
-                .expiration(new Date(issuedAt.getTime() + expiration))
+                .expiration(new Date(issuedAt.getTime() + jwtProperties.getExpiration()))
                 .signWith(signingKey())
                 .compact();
     }
