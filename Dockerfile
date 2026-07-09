@@ -23,7 +23,6 @@ COPY --from=build --chown=spring:spring /app/app.jar app.jar
 
 USER spring:spring
 
-ENV PORT=8080
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

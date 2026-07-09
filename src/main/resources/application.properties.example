@@ -1,6 +1,6 @@
 spring.application.name=shopping-cart-spring
 
-# Server (Railway sets PORT)
+# Server (Cloud Run sets PORT)
 server.port=${PORT:8080}
 
 # Database — Neon PostgreSQL
