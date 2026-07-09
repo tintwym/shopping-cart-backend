@@ -12,8 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +42,7 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         seedRole("User");
         seedRole("Admin");
@@ -53,62 +57,88 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void seedSampleProducts() {
-        seedProductIfMissing("Wireless Headphones",
+        seedProduct("Wireless Headphones",
                 "Noise-cancelling over-ear headphones with 30-hour battery life.",
-                "129.00", 25, "https://picsum.photos/seed/headphones/600/600");
-        seedProductIfMissing("Smart Watch",
+                "129.00", 25);
+        seedProduct("Smart Watch",
                 "Track fitness, sleep, and notifications on your wrist.",
-                "249.00", 15, "https://picsum.photos/seed/watch/600/600");
-        seedProductIfMissing("USB-C Hub",
+                "249.00", 15);
+        seedProduct("USB-C Hub",
                 "7-in-1 adapter with HDMI, USB 3.0, and SD card reader.",
-                "49.00", 40, "https://picsum.photos/seed/hub/600/600");
-        seedProductIfMissing("Mechanical Keyboard",
+                "49.00", 40);
+        seedProduct("Mechanical Keyboard",
                 "Compact layout with hot-swappable switches.",
-                "89.00", 20, "https://picsum.photos/seed/keyboard/600/600");
-        seedProductIfMissing("Wireless Mouse",
+                "89.00", 20);
+        seedProduct("Wireless Mouse",
                 "Ergonomic silent-click mouse with multi-device pairing.",
-                "39.00", 35, "https://picsum.photos/seed/mouse/600/600");
-        seedProductIfMissing("Portable SSD 1TB",
+                "39.00", 35);
+        seedProduct("Portable SSD 1TB",
                 "USB 3.2 external drive for fast backups and travel.",
-                "119.00", 18, "https://picsum.photos/seed/ssd/600/600");
-        seedProductIfMissing("4K Webcam",
+                "119.00", 18);
+        seedProduct("4K Webcam",
                 "Auto-focus camera with built-in mic and privacy shutter.",
-                "79.00", 22, "https://picsum.photos/seed/webcam/600/600");
-        seedProductIfMissing("Bluetooth Speaker",
+                "79.00", 22);
+        seedProduct("Bluetooth Speaker",
                 "Water-resistant speaker with 12-hour playtime.",
-                "59.00", 30, "https://picsum.photos/seed/speaker/600/600");
-        seedProductIfMissing("27\" Gaming Monitor",
+                "59.00", 30);
+        seedProduct("27\" Gaming Monitor",
                 "144Hz IPS panel with low-latency mode.",
-                "329.00", 12, "https://picsum.photos/seed/monitor/600/600");
-        seedProductIfMissing("Laptop Stand",
+                "329.00", 12);
+        seedProduct("Laptop Stand",
                 "Aluminium riser with adjustable height and cable slot.",
-                "45.00", 28, "https://picsum.photos/seed/stand/600/600");
-        seedProductIfMissing("65W GaN Charger",
+                "45.00", 28);
+        seedProduct("65W GaN Charger",
                 "Compact dual-port USB-C charger for phone and laptop.",
-                "34.00", 50, "https://picsum.photos/seed/charger/600/600");
-        seedProductIfMissing("10\" Tablet",
+                "34.00", 50);
+        seedProduct("10\" Tablet",
                 "Lightweight tablet for reading, notes, and streaming.",
-                "199.00", 14, "https://picsum.photos/seed/tablet/600/600");
-        seedProductIfMissing("Wireless Earbuds",
+                "199.00", 14);
+        seedProduct("Wireless Earbuds",
                 "In-ear buds with active noise cancellation.",
-                "99.00", 32, "https://picsum.photos/seed/earbuds/600/600");
-        seedProductIfMissing("Smart Home Hub",
+                "99.00", 32);
+        seedProduct("Smart Home Hub",
                 "Control lights, sensors, and routines from one app.",
-                "69.00", 16, "https://picsum.photos/seed/smarthub/600/600");
-        seedProductIfMissing("Desk Ring Light",
+                "69.00", 16);
+        seedProduct("Desk Ring Light",
                 "Adjustable LED ring light for video calls and streaming.",
-                "42.00", 24, "https://picsum.photos/seed/ringlight/600/600");
-        seedProductIfMissing("Power Bank 20000mAh",
+                "42.00", 24);
+        seedProduct("Power Bank 20000mAh",
                 "High-capacity battery with USB-C PD fast charging.",
-                "55.00", 38, "https://picsum.photos/seed/powerbank/600/600");
+                "55.00", 38);
     }
 
-    private void seedProductIfMissing(
-            String name, String description, String price, int stock, String imagePath) {
-        if (productRepository.findByNameIgnoreCase(name).isPresent()) {
+    private void seedProduct(
+            String name, String description, String price, int stock) {
+        String imageUrl = placeholderImage(name);
+        var existing = productRepository.findByNameIgnoreCase(name);
+        if (existing.isPresent()) {
+            refreshLegacyImage(existing.get(), imageUrl);
             return;
         }
-        saveProduct(name, description, price, stock, imagePath);
+        saveProduct(name, description, price, stock, imageUrl);
+    }
+
+    private String placeholderImage(String name) {
+        String text = URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20");
+        return "https://placehold.co/600x450/e2e8f0/64748b?text=" + text;
+    }
+
+    private void refreshLegacyImage(Product product, String imageUrl) {
+        List<ProductImage> images = product.getImages();
+        if (images == null || images.isEmpty()) {
+            ProductImage image = new ProductImage(imageUrl, product.getName());
+            image.setProduct(product);
+            List<ProductImage> next = new ArrayList<>();
+            next.add(image);
+            product.setImages(next);
+            productRepository.save(product);
+            return;
+        }
+        String path = images.get(0).getPath();
+        if (path != null && path.contains("picsum.photos")) {
+            images.get(0).setPath(imageUrl);
+            productRepository.save(product);
+        }
     }
 
     private void saveProduct(String name, String description, String price, int stock, String imagePath) {
