@@ -32,21 +32,21 @@ The Flutter client lives in a **separate repo** — set `APP_FRONTEND_BASE_URL` 
 | `ADMIN_SEED_USERNAME` | Optional — first admin login (e.g. `admin`) |
 | `ADMIN_SEED_PASSWORD` | Optional — only used if username does not exist yet |
 
-5. **Settings → Networking** → generate a public domain (e.g. `your-service.up.railway.app`).
-6. Copy that URL into the Flutter repo (`API_BASE_URL` and `vercel.json` proxy — see Flutter `DEPLOY.md`).
+5. **Settings → Networking** → public domain: `shopping-cart-backend-production.up.railway.app`.
+6. Flutter repo uses this in `API_BASE_URL` and `vercel.json` (see Flutter `DEPLOY.md`).
 
 **Stripe webhook**
 
 1. Stripe Dashboard → Developers → Webhooks → Add endpoint  
-2. URL: `https://YOUR-SERVICE.up.railway.app/api/stripe/webhook`  
+2. URL: `https://shopping-cart-backend-production.up.railway.app/api/stripe/webhook`  
 3. Event: `checkout.session.completed`  
 4. Copy signing secret → `STRIPE_WEBHOOK_SECRET` on Railway → redeploy  
 
 **Verify API**
 
 ```bash
-curl https://YOUR-SERVICE.up.railway.app/api/products/index
-curl https://YOUR-SERVICE.up.railway.app/actuator/health
+curl https://shopping-cart-backend-production.up.railway.app/api/products/index
+curl https://shopping-cart-backend-production.up.railway.app/actuator/health
 ```
 
 Expect JSON from `/api/products/index`, not HTML.
