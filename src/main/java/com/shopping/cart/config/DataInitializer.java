@@ -135,7 +135,9 @@ public class DataInitializer implements ApplicationRunner {
             return;
         }
         String path = images.get(0).getPath();
-        if (path != null && path.contains("picsum.photos")) {
+        if (path != null
+                && (!path.startsWith("http://") && !path.startsWith("https://")
+                    || path.contains("picsum.photos"))) {
             images.get(0).setPath(imageUrl);
             productRepository.save(product);
         }

@@ -8,7 +8,6 @@ Use this after pushing this repo to GitHub. **Redeploy** when env vars change.
 |------|------|
 | `LICENSE`, `README.md`, `DEPLOY.md` | Repo docs |
 | `Dockerfile`, `.dockerignore` | API Docker image |
-| `cloudbuild.yaml` | Optional Cloud Build config |
 | `scripts/deploy-cloud-run.sh` | One-command deploy helper |
 
 The Flutter client lives in a **separate repo** — set `APP_FRONTEND_BASE_URL` to your Vercel URL.
@@ -38,20 +37,9 @@ export GCP_REGION=asia-southeast1   # or your preferred region
 ./scripts/deploy-cloud-run.sh
 ```
 
-The script builds the Docker image and deploys to Cloud Run. On first deploy, set environment variables in the console (see below) or pass a local env file.
+The script builds the Docker image and deploys to Cloud Run using your local `.env` (auto-converted to `.env.cloudrun`).
 
-**Manual deploy (without script):**
-
-```bash
-gcloud run deploy shopping-cart-backend \
-  --source . \
-  --region asia-southeast1 \
-  --allow-unauthenticated \
-  --memory 512Mi \
-  --port 8080
-```
-
-Copy the service URL from the output (e.g. `https://shopping-cart-backend-xxxxx-as.a.run.app`).
+Copy the service URL from the output (e.g. `https://shopping-cart-backend-860670068354.asia-southeast1.run.app`).
 
 ## Environment variables (Cloud Run)
 
@@ -74,16 +62,7 @@ Cloud Run sets `PORT` automatically — do not hardcode it.
 
 **Deploy with env vars from a local file** (not committed):
 
-```bash
-# Create .env.cloudrun locally (same keys as .env) — already gitignored via .env.*
-gcloud run deploy shopping-cart-backend \
-  --source . \
-  --region asia-southeast1 \
-  --allow-unauthenticated \
-  --env-vars-file .env.cloudrun
-```
-
-`.env.cloudrun` format (YAML):
+The deploy script auto-generates `.env.cloudrun` from `.env`. Format if you create it manually:
 
 ```yaml
 DATABASE_URL: postgresql://user:pass@host/db?sslmode=require
@@ -125,11 +104,6 @@ Expect JSON from `/api/products/index`, not HTML.
    ```
 
 2. Sign in on the app → **Me** → **Manage products**
-
-## Shut down Railway (if migrating)
-
-1. Railway dashboard → delete or pause the old service so you are not billed.
-2. Update all URLs to your new Cloud Run hostname.
 
 ## Troubleshooting
 

@@ -4,7 +4,7 @@ Spring Boot **REST API** and **Neon PostgreSQL** for the shopping cart app. JWT 
 
 ## Requirements
 
-- Java 17
+- Java 21
 - Maven 3.9+
 - [Neon](https://neon.tech) PostgreSQL database (free tier works)
 
@@ -54,27 +54,12 @@ API base: **http://localhost:8080/api**
 
 ## Google Cloud Run deploy
 
-Deploy files for this service:
-
-| File | Location |
-|------|----------|
-| `Dockerfile`, `.dockerignore`, `cloudbuild.yaml` | Repo root (this repository) |
-| `scripts/deploy-cloud-run.sh` | One-command deploy helper |
-
-Set `DATABASE_URL` and other env vars per [DEPLOY.md](DEPLOY.md).
-
-| Setting | Value |
-|---------|--------|
-| Runtime | Docker on Cloud Run |
-| Health check | `/actuator/health/liveness` |
-| Region | e.g. `asia-southeast1` |
-
-Quick deploy:
-
 ```bash
 export GCP_PROJECT_ID=your-project-id
 ./scripts/deploy-cloud-run.sh
 ```
+
+See **[DEPLOY.md](DEPLOY.md)** for env vars, IAM fixes, and Stripe webhook setup.
 
 ## Tests
 
@@ -86,7 +71,7 @@ Integration tests use **Testcontainers** with PostgreSQL 16 (real Postgres, not 
 
 ## Tech stack
 
-- Spring Boot 3.5 (Web, Data JPA, Actuator)
+- Spring Boot 4.1 (Web, Data JPA, Actuator)
 - PostgreSQL / Neon
 - JWT (jjwt), Stripe Java SDK, Cloudinary, Lombok
 
